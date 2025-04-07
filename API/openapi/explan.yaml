@@ -1,0 +1,343 @@
+openapi: 3.0.0
+info:
+  title: ExtroPlanner API
+  description:
+    This API provides historical temperature, humidity and rainfall data.
+  version: 2.0.0
+servers:
+  - url: http://127.0.0.1:8080/explan/
+paths:
+  /temperature/max:
+    get:
+      summary: Returns the maximum temperature of the dataset and the date-time of the record.
+      operationId: controller.get_max_temperature
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Temperature'
+  /temperature/min:
+    get:
+      summary: Returns the minimum temperature of the dataset and the date-time of the record.
+      operationId: controller.get_min_temperature
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Temperature'
+  /temperature/avg:
+    get:
+      summary: Returns the average temperature of the dataset.
+      operationId: controller.get_avg_temperature
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: number
+  /temperature/{datetime}:
+    parameters:
+    - name: datetime
+      in: path
+      required: true
+      schema:
+        type: string
+        format: date-time
+        example: '2025-04-10T09:17:58Z'
+    get:
+      summary: Returns the temperature of given datetime from the dataset.
+      operationId: controller.get_temperature
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Temperature'
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /temperature/predict:
+    post:
+      summary: Predict the temperature from the given data.
+      operationId: controller.predict_temperature
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                datetime:
+                  type: string
+                  format: date-time
+                  example: '2025-04-10T09:17:58Z'
+              required:
+                - datetime
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: number
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /humidity/max:
+    get:
+      summary: Returns the maximum humidity of the dataset and the date-time of the record.
+      operationId: controller.get_max_humidity
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Humidity'
+  /humidity/min:
+    get:
+      summary: Returns the minimum humidity of the dataset and the date-time of the record.
+      operationId: controller.get_min_humidity
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Humidity'
+  /humidity/avg:
+    get:
+      summary: Returns the average humidity of the dataset.
+      operationId: controller.get_avg_humidity
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: number
+  /humidity/{datetime}:
+    parameters:
+    - name: datetime
+      in: path
+      required: true
+      schema:
+        type: string
+        format: date-time
+        example: '2025-04-10T09:17:58Z'
+    get:
+      summary: Returns the humidity of given datetime from the dataset.
+      operationId: controller.get_humidity
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Humidity'
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /humidity/predict:
+    post:
+      summary: Predict the humidity from the given data.
+      operationId: controller.predict_humidity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                datetime:
+                  type: string
+                  format: date-time
+                  example: '2025-04-10T09:17:58Z'
+              required:
+                - datetime
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: number
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /rain/max:
+    get:
+      summary: |
+        Returns the maximum amount of rainfall in a single time frame of the dataset,
+        the date-time of the record, and the weather condition.
+      operationId: controller.get_max_rain
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rain'
+  /rain/min:
+    get:
+      summary: |
+        Returns the minimum amount of rainfall in a single time frame of the dataset,
+        the date-time of the record, and the weather condition.
+      operationId: controller.get_min_rain
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rain'
+  /rain/avg:
+    get:
+      summary: Returns the average amount of rainfall of the dataset.
+      operationId: controller.get_avg_rain
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: number
+  /rain/{datetime}:
+    parameters:
+    - name: datetime
+      in: path
+      required: true
+      schema:
+        type: string
+        format: date-time
+        example: '2025-04-10T09:17:58Z'
+    get:
+      summary: Returns the amount of rainfall of given datetime and the weather condition from the dataset.
+      operationId: controller.get_rain
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rain'
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /rain/predict:
+    post:
+      summary: Predict the amount of rainfall from the given data.
+      operationId: controller.predict_rain
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                datetime:
+                  type: string
+                  format: date-time
+                  example: '2025-04-10T09:17:58Z'
+              required:
+                - datetime
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: number
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /heatstroke/index:
+    post:
+      summary: Returns the heatstroke index based on the given humidity and temperature.
+      operationId: controller.get_heatstroke_index
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                humidity:
+                  type: number
+                temperature:
+                  type: number
+              required:
+                - humidity
+                - temperature
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: number
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    Temperature:
+      type: object
+      properties:
+        ts:
+          type: string
+          format: date-time
+        temperature:
+          type: number
+    Humidity:
+      type: object
+      properties:
+        ts:
+          type: string
+          format: date-time
+        humidity:
+          type: number
+    Rain:
+      type: object
+      properties:
+        ts:
+          type: string
+          format: date-time
+        rainfall:
+          type: number
+        weather:
+          type: string
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: 'Invalid input data'
