@@ -61,7 +61,18 @@ def get_avg_temperature():
 def get_temperature(datetime):
     with pool.connection() as conn, conn.cursor() as cs:
         cs.execute("""
-                """)
+                    SELECT temperature, ts
+                    FROM weather_predict
+                    WHERE ts = (
+                         SELECT ts
+                         FROM weather_predict
+                         ORDER BY abs(ts - %s)
+                         LIMIT 1
+                    );
+                """, [datetime])
+        result = cs.fetchone()
+    if result:
+        return models.Temperature(*result)
     abort(404)
 
 
@@ -79,6 +90,9 @@ def get_max_humidity():
                 ORDER BY humidity DESC, ts 
                 LIMIT 1
                 """)
+        result = cs.fetchone()
+    if result:
+        return models.Humidity(*result)
     abort(404)
 
 
@@ -90,6 +104,9 @@ def get_min_humidity():
                 ORDER BY humidity, ts 
                 LIMIT 1
                 """)
+        result = cs.fetchone()
+    if result:
+        return models.Humidity(*result)
     abort(404)
 
 
@@ -99,13 +116,27 @@ def get_avg_humidity():
                 SELECT AVG(humidity) as avg_humidity
                 FROM weather_predict
                 """)
+        result = cs.fetchone()
+    if result:
+        return result
     abort(404)
 
 
 def get_humidity(datetime):
     with pool.connection() as conn, conn.cursor() as cs:
         cs.execute("""
-                """)
+                    SELECT humidity, ts
+                    FROM weather_predict
+                    WHERE ts = (
+                         SELECT ts
+                         FROM weather_predict
+                         ORDER BY abs(ts - %s)
+                         LIMIT 1
+                    );
+                """, [datetime])
+        result = cs.fetchone()
+    if result:
+        return models.Humidity(*result)
     abort(404)
 
 
@@ -121,10 +152,14 @@ def get_max_rain():
                 SELECT rainfall, date
                 FROM (SELECT MAX(rain_amt) as rainfall, DATE(ts) as date
                 FROM weather_predict
+                WHERE rain_amt > 0
                 GROUP BY DATE(ts)) as rainfall
                 ORDER BY rainfall DESC, date
                 LIMIT 1
                 """)
+        result = cs.fetchone()
+    if result:
+        return models.Rain(*result)
     abort(404)
 
 
@@ -134,10 +169,14 @@ def get_min_rain():
                 SELECT rainfall, date
                 FROM (SELECT MIN(rain_amt) as rainfall, DATE(ts) as date
                 FROM weather_predict
+                WHERE rain_amt > 0
                 GROUP BY DATE(ts)) as rainfall
                 ORDER BY rainfall, date
                 LIMIT 1
                 """)
+        result = cs.fetchone()
+    if result:
+        return models.Rain(*result)
     abort(404)
 
 
@@ -149,13 +188,27 @@ def get_avg_rain():
                 FROM weather_predict
                 GROUP BY DATE(ts)) as rainfall
                 """)
+        result = cs.fetchone()
+    if result:
+        return result
     abort(404)
 
 
 def get_rain(datetime):
     with pool.connection() as conn, conn.cursor() as cs:
         cs.execute("""
-                """)
+                    SELECT rain_amt, ts
+                    FROM weather_predict
+                    WHERE ts = (
+                         SELECT ts
+                         FROM weather_predict
+                         ORDER BY abs(ts - %s)
+                         LIMIT 1
+                    );
+                """, [datetime])
+        result = cs.fetchone()
+    if result:
+        return models.Rain(*result)
     abort(404)
 
 
