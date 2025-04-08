@@ -21,21 +21,40 @@ pool = PooledDB(
 def get_max_temperature():
     with pool.connection() as conn, conn.cursor() as cs:
         cs.execute("""
+                SELECT ts, temperature
+                FROM weather_predict 
+                ORDER BY temperature DESC, ts 
+                LIMIT 1
                 """)
+        result = cs.fetchone()
+    if result:
+        return models.Temperature(*result)
     abort(404)
 
 
 def get_min_temperature():
     with pool.connection() as conn, conn.cursor() as cs:
         cs.execute("""
+                SELECT ts, temperature
+                FROM weather_predict 
+                ORDER BY temperature, ts 
+                LIMIT 1
                 """)
+        result = cs.fetchone()
+    if result:
+        return models.Temperature(*result)
     abort(404)
 
 
 def get_avg_temperature():
     with pool.connection() as conn, conn.cursor() as cs:
         cs.execute("""
+                SELECT AVG(temperature) as avg_temp
+                FROM weather_predict
                 """)
+        result = cs.fetchone()
+    if result:
+        return result
     abort(404)
 
 
@@ -55,6 +74,10 @@ def predict_temperature():
 def get_max_humidity():
     with pool.connection() as conn, conn.cursor() as cs:
         cs.execute("""
+                SELECT ts, humidity
+                FROM weather_predict 
+                ORDER BY humidity DESC, ts 
+                LIMIT 1
                 """)
     abort(404)
 
@@ -62,6 +85,10 @@ def get_max_humidity():
 def get_min_humidity():
     with pool.connection() as conn, conn.cursor() as cs:
         cs.execute("""
+                SELECT ts, humidity
+                FROM weather_predict 
+                ORDER BY humidity, ts 
+                LIMIT 1
                 """)
     abort(404)
 
@@ -69,6 +96,8 @@ def get_min_humidity():
 def get_avg_humidity():
     with pool.connection() as conn, conn.cursor() as cs:
         cs.execute("""
+                SELECT AVG(humidity) as avg_humidity
+                FROM weather_predict
                 """)
     abort(404)
 
@@ -89,6 +118,12 @@ def predict_humidity():
 def get_max_rain():
     with pool.connection() as conn, conn.cursor() as cs:
         cs.execute("""
+                SELECT rainfall, date
+                FROM (SELECT MAX(rain_amt) as rainfall, DATE(ts) as date
+                FROM weather_predict
+                GROUP BY DATE(ts)) as rainfall
+                ORDER BY rainfall DESC, date
+                LIMIT 1
                 """)
     abort(404)
 
@@ -96,6 +131,12 @@ def get_max_rain():
 def get_min_rain():
     with pool.connection() as conn, conn.cursor() as cs:
         cs.execute("""
+                SELECT rainfall, date
+                FROM (SELECT MIN(rain_amt) as rainfall, DATE(ts) as date
+                FROM weather_predict
+                GROUP BY DATE(ts)) as rainfall
+                ORDER BY rainfall, date
+                LIMIT 1
                 """)
     abort(404)
 
@@ -103,6 +144,10 @@ def get_min_rain():
 def get_avg_rain():
     with pool.connection() as conn, conn.cursor() as cs:
         cs.execute("""
+                SELECT AVG(rainfall) as avg_rainfall
+                FROM (SELECT SUM(rain_amt) as rainfall
+                FROM weather_predict
+                GROUP BY DATE(ts)) as rainfall
                 """)
     abort(404)
 
