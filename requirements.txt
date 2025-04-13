@@ -3,3 +3,6 @@ DBUtils
 PyMySQL
 connexion >= 2.6.0, <3.0.0
 cryptography
+plotly
+plotly[express]
+streamlit
