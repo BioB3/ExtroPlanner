@@ -1,5 +1,5 @@
--r api/stub/requirements.txt
-DBUtils
+fastapi
+uvicorn
 PyMySQL
-connexion >= 2.6.0, <3.0.0
+DBUtils
 cryptography
