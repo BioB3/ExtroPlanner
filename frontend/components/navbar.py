@@ -2,7 +2,7 @@ import streamlit as st
 
 def navbar() -> None:
     with st.sidebar:
+        st.title("Extroplanner")
         st.page_link('main.py', label="Home")
-        st.page_link('pages/temperature.py', label="Temperature")
-        st.page_link('pages/humidity.py', label="Humidity")
-        st.page_link('pages/rainfall.py', label="Rainfall")
+        st.page_link('pages/find_record.py', label="Find by datetime")
+        st.page_link('pages/visualization.py', label="Visualization")
