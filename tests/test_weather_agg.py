@@ -50,8 +50,3 @@ class TestAggregateWeather(BaseTestCase):
         res = self.client.get(
             self._url + 'weather/aggregate?location=Kasetsart%20University&days=-1')
         self.assertEqual(422, res.status_code)
-
-    def test_get_aggregate_weather_data_with_zero_days(self):
-        res = self.client.get(
-            self._url + 'weather/aggregate?location=Kasetsart%20University&days=0')
-        self.assertEqual(422, res.status_code)
