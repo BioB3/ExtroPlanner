@@ -19,4 +19,4 @@ if "p_loc" not in st.session_state:
 
 location_radio = st.radio("Available Locations", LOCATION, key="p_loc")
 st.markdown("Latest Reading")
-write_latest_data(location_radio)
+write_latest_data(st.session_state["p_loc"])

@@ -1,7 +1,7 @@
 import streamlit as st
 from datetime import datetime
 from components import navbar, render_graph
-from utils import APIFetcher, keep_session_state
+from utils import APIFetcher, keep_session_state, write_max_min
 
 st.set_page_config(page_title="Temperature", layout="wide")
 keep_session_state()
@@ -43,8 +43,17 @@ try:
             y=st.session_state["p_atr"].lower(),
             location=st.session_state["p_loc"],
             days=st.session_state["p_days"],
-            detail=True if st.session_state["p_detail"] == "Every data point" else False,
+            detail=True
+            if st.session_state["p_detail"] == "Every data point"
+            else False,
         )
     )
+    write_max_min(
+        st.session_state["p_loc"],
+        st.session_state["p_days"],
+        st.session_state["p_atr"].lower(),
+    )
 except ValueError:
-    st.markdown(f"No data found within today and {st.session_state["p_days"]} day(s) ago")
+    st.markdown(
+        f"No data found within today and {st.session_state["p_days"]} day(s) ago"
+    )

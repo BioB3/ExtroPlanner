@@ -18,6 +18,11 @@ def write_closest_time(location: str, datetime: datetime):
     st.table(df)
 
 
-def write_historical(location: str, days: int, key: str):
-    data = APIFetcher.get_last_days_weather(location, days)
-    df = pd.DataFrame.from_dict
+def write_max_min(location: str, days: int, attribute: str):
+    max_data, min_data = APIFetcher.get_max_min(location, attribute, days)
+    st.markdown(
+        f"Maximum {attribute} of the past {days} day(s) is {max_data[attribute]} on {max_data["ts"]}"
+    )
+    st.markdown(
+        f"Minimum {attribute} of the past {days} day(s) is {min_data[attribute]} on {min_data["ts"]}"
+    )
