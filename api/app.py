@@ -212,7 +212,7 @@ async def get_min_humidity(location: str, days: int = 1):
 
 
 
-@router.get("/rain/max")
+@router.get("/rainfall/max")
 async def get_max_rainfall(location: str, days: int = 1):
     if not location:
         raise HTTPException(400, "Please specify a location")
@@ -231,7 +231,7 @@ async def get_max_rainfall(location: str, days: int = 1):
     return RainfallData(*result)
 
 
-@router.get("/rain/min")
+@router.get("/rainfall/min")
 async def get_min_rainfall(location: str, days: int = 1):
     if not location:
         raise HTTPException(400, "Please specify a location")
