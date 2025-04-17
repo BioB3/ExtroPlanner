@@ -19,9 +19,9 @@ class TestAggregateWeather(BaseTestCase):
         for items in data:
             self.check_schema(Schemas.get_schema('weather'), items)
 
-    def test_get_aggregate_weather_data_with_invalid_location(self):
+    def test_get_aggregate_weather_data_with_unknown_location(self):
         res = self.client.get(
-            self._url + 'weather/aggregate?location=123334')
+            self._url + 'weather/aggregate?location=12345')
         self.assertEqual(404, res.status_code)
 
     def test_get_aggregate_weather_data_with_no_location(self):

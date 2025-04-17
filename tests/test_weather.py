@@ -1,5 +1,4 @@
 from test_template import BaseTestCase, Schemas
-import requests
 import json
 
 
@@ -11,7 +10,7 @@ class TestWeather(BaseTestCase):
         self.assertIsInstance(data, dict)
         self.check_schema(Schemas.get_schema('weather'), data)
 
-    def test_get_latest_weather_data_with_invalid_location(self):
+    def test_get_latest_weather_data_with_unknown_location(self):
         res = self.client.get(
             self._url + 'weather?location=123334')
         self.assertEqual(404, res.status_code)

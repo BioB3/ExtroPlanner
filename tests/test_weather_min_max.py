@@ -72,7 +72,7 @@ class TestMinMaxWeather(BaseTestCase):
         max_data[0], max_data[1], max_data[8], max_data[9])
         mock_pool_db.connection.return_value.__enter__.return_value = mock_conn
         res = self.client.get(
-            self._url + 'rain/max?location=Kasetsart%20University')
+            self._url + 'rainfall/max?location=Kasetsart%20University')
         self.assertEqual(200, res.status_code)
         data = json.loads(res.text)
         self.assertIsInstance(data, dict)
@@ -87,8 +87,98 @@ class TestMinMaxWeather(BaseTestCase):
             max_data[0], max_data[1], max_data[8], max_data[9])
         mock_pool_db.connection.return_value.__enter__.return_value = mock_conn
         res = self.client.get(
-            self._url + 'rain/min?location=Kasetsart%20University')
+            self._url + 'rainfall/min?location=Kasetsart%20University')
         self.assertEqual(200, res.status_code)
         data = json.loads(res.text)
         self.assertIsInstance(data, dict)
         self.assertEqual(0.0, data['rainfall'])
+
+    def test_get_max_temp_with_unknown_location(self):
+        res = self.client.get(
+            self._url + 'temperature/max?location=12345')
+        self.assertEqual(404, res.status_code)
+
+    def test_get_min_temp_with_unknown_location(self):
+        res = self.client.get(
+            self._url + 'temperature/min?location=12345')
+        self.assertEqual(404, res.status_code)
+
+    def test_get_max_temp_with_no_location(self):
+        res = self.client.get(
+            self._url + 'temperature/max')
+        self.assertEqual(422, res.status_code)
+
+    def test_get_min_temp_with_no_location(self):
+        res = self.client.get(
+            self._url + 'temperature/min')
+        self.assertEqual(422, res.status_code)
+
+    def test_get_max_temp_with_invalid_date(self):
+        res = self.client.get(
+            self._url + 'temperature/max?location=Kasetsart%20University&days=0')
+        self.assertEqual(422, res.status_code)
+
+    def test_min_temp_with_invalid_date(self):
+        res = self.client.get(
+            self._url + 'temperature/min?location=Kasetsart%20University&days=0')
+        self.assertEqual(422, res.status_code)
+
+    def test_get_max_humidity_with_unknown_location(self):
+        res = self.client.get(
+            self._url + 'humidity/max?location=12345')
+        self.assertEqual(404, res.status_code)
+
+    def test_get_min_humidity_with_unknown_location(self):
+        res = self.client.get(
+            self._url + 'humidity/min?location=12345')
+        self.assertEqual(404, res.status_code)
+
+    def test_get_max_humidity_with_no_location(self):
+        res = self.client.get(
+            self._url + 'humidity/max')
+        self.assertEqual(422, res.status_code)
+
+    def test_get_min_humidity_with_no_location(self):
+        res = self.client.get(
+            self._url + 'humidity/min')
+        self.assertEqual(422, res.status_code)
+
+    def test_get_max_humidity_with_invalid_date(self):
+        res = self.client.get(
+            self._url + 'humidity/max?location=Kasetsart%20University&days=0')
+        self.assertEqual(422, res.status_code)
+
+    def test_min_humidity_with_invalid_date(self):
+        res = self.client.get(
+            self._url + 'humidity/min?location=Kasetsart%20University&days=0')
+        self.assertEqual(422, res.status_code)
+
+    def test_get_max_rainfall_with_unknown_location(self):
+        res = self.client.get(
+            self._url + 'rainfall/max?location=12345')
+        self.assertEqual(404, res.status_code)
+
+    def test_get_min_rainfall_with_unknown_location(self):
+        res = self.client.get(
+            self._url + 'rainfall/min?location=12345')
+        self.assertEqual(404, res.status_code)
+
+    def test_get_max_rainfall_with_no_location(self):
+        res = self.client.get(
+            self._url + 'rainfall/max')
+        self.assertEqual(422, res.status_code)
+
+    def test_get_min_rainfall_with_no_location(self):
+        res = self.client.get(
+            self._url + 'rainfall/min')
+        self.assertEqual(422, res.status_code)
+
+    def test_get_max_rainfall_with_invalid_date(self):
+        res = self.client.get(
+            self._url + 'rainfall/max?location=Kasetsart%20University&days=0')
+        self.assertEqual(422, res.status_code)
+
+    def test_min_rainfall_with_invalid_date(self):
+        res = self.client.get(
+            self._url + 'rainfall/min?location=Kasetsart%20University&days=0')
+        self.assertEqual(422, res.status_code)
