@@ -3,3 +3,6 @@ uvicorn
 PyMySQL
 DBUtils
 cryptography
+plotly
+plotly[express]
+streamlit
