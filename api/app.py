@@ -2,7 +2,7 @@ import pymysql
 from dbutils.pooled_db import PooledDB
 from fastapi import FastAPI, APIRouter, HTTPException
 from pydantic import BaseModel
-from config import DB_HOST, DB_USER, DB_PASSWD, DB_NAME
+from .config import DB_HOST, DB_USER, DB_PASSWD, DB_NAME
 from datetime import datetime
 
 pool = PooledDB(
@@ -15,7 +15,7 @@ pool = PooledDB(
     blocking=True,
 )
 
-app = FastAPI()
+app_api = FastAPI()
 router = APIRouter(prefix="/explan")
 
 class BetterBaseModel(BaseModel):
@@ -250,4 +250,4 @@ async def get_min_rainfall(location: str, days: int = 1):
     return RainfallData(*result)
 
 
-app.include_router(router)
+app_api.include_router(router)
