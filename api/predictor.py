@@ -1,9 +1,4 @@
 from datetime import datetime
-from datetime import timedelta
-from statsmodels.tsa.seasonal import seasonal_decompose
-from statsmodels.tsa.statespace.sarimax import SARIMAX
-import statsmodels.api as sm_api
-from statsmodels.tsa.statespace.sarimax import SARIMAXResults
 from models import *
 import pandas as pd
 
