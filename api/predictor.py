@@ -1,9 +1,18 @@
 from datetime import datetime
-from models import *
+from .models import *
 import pandas as pd
 
 
-class WeatherPredictor:
+class Singleton(type):
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
+
+
+class WeatherPredictor(metaclass=Singleton):
     def __init__(self):
         self.temp_predictor = TemperaturePredictor()
         self.humidity_predictor = HumidityPredictor()
@@ -11,7 +20,10 @@ class WeatherPredictor:
         self.rain_classifier = RainClassifier()
 
     def forecast_temperature(self, timestamp, location):
-        return self.temp_predictor.forecast(timestamp)
+        predicted = self.temp_predictor.forecast(timestamp)
+        predicted.index.strftime("%Y-%m-%d %H:%M:%S")
+        return predicted.rename("temperature").reset_index().rename(
+            columns={'index': 'ts'}).to_dict(orient='records')
 
     def forecast_humidity(self, timestamp, location):
         date = datetime.fromisoformat(timestamp)
@@ -23,7 +35,10 @@ class WeatherPredictor:
         return self.humidity_predictor.forecast(timestamp)
 
     def forecast_pressure(self, timestamp, location):
-        return self.pressure_predictor.forecast(timestamp)
+        predicted = self.pressure_predictor.forecast(timestamp)
+        predicted.index.strftime("%Y-%m-%d %H:%M:%S")
+        return predicted.rename("pressure").reset_index().rename(
+            columns={'index': 'ts'}).to_dict(orient='records')
 
     def forecast_rain(self, weather_data):
         return self.rain_classifier.classify(weather_data)
