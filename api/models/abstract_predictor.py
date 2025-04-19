@@ -1,5 +1,4 @@
 import abc
-from datetime import datetime
 
 
 class AbstractPredictor(abc.ABC):
@@ -15,4 +14,3 @@ class AbstractPredictor(abc.ABC):
     @abc.abstractmethod
     def retrain(self, data):
         raise NotImplementedError
-
