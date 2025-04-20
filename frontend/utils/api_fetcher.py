@@ -94,6 +94,4 @@ class APIFetcher:
         response = requests.get(url)
         if response.status_code != 200:
             raise ValueError(f"{response.status_code}: {response.text}")
-        data = response.json()
-        df = pd.DataFrame.from_dict(data)
-        return df[df["ts"] >= start.isoformat()]
+        return response.json()
