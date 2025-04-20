@@ -54,7 +54,7 @@ class APIFetcher:
         min_url = f"{cls.__BASE_URL}/{attribute}/min?location={location}"
         if days is not None:
             days_param = f"&days={days}"
-            max_url +=  days_param
+            max_url += days_param
             min_url += days_param
         max_response = requests.get(max_url)
         min_response = requests.get(min_url)
@@ -64,11 +64,33 @@ class APIFetcher:
             raise ValueError(f"{min_response.status_code}: {min_response.text}")
         return (max_response.json(), min_response.json())
 
-
     @classmethod
     @st.cache_data
     def get_temperature_prediction(cls, location: str, start: datetime, end: datetime):
         url = f"{cls.__BASE_URL}/predict/temperature/?location={location}&ts={end.isoformat()}"
+        response = requests.get(url)
+        if response.status_code != 200:
+            raise ValueError(f"{response.status_code}: {response.text}")
+        data = response.json()
+        df = pd.DataFrame.from_dict(data)
+        return df[df["ts"] >= start.isoformat()]
+
+    @classmethod
+    @st.cache_data
+    def get_humidity_prediction(cls, location: str, start: datetime, end: datetime):
+        url = f"{cls.__BASE_URL}/predict/humidity/?location={location}&ts={end.isoformat()}"
+        response = requests.get(url)
+        if response.status_code != 200:
+            raise ValueError(f"{response.status_code}: {response.text}")
+        data = response.json()
+        df = pd.DataFrame.from_dict(data)
+        return df[df["ts"] >= start.isoformat()]
+
+    @classmethod
+    @st.cache_data
+    def get_rain_prediction(cls, location: str, start: datetime, end: datetime):
+        url = f"{cls.__BASE_URL}/predict/rain/?location={location}&start={start.isoformat()}\
+&end={end.isoformat()}"
         response = requests.get(url)
         if response.status_code != 200:
             raise ValueError(f"{response.status_code}: {response.text}")

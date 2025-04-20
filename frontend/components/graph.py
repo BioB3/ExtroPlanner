@@ -21,7 +21,8 @@ def render_old_data_graph(y: str, location: str, days: int, detail: bool = False
 
 def render_prediction_data(y: str, location: str, start: datetime, end: datetime):
     func_call = {
-        "temperature": APIFetcher.get_temperature_prediction
+        "temperature": APIFetcher.get_temperature_prediction,
+        "humidity": APIFetcher.get_humidity_prediction,
     }
 
     df = func_call[y](location, start, end)

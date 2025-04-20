@@ -1,5 +1,5 @@
 import streamlit as st
-from datetime import datetime
+from datetime import datetime, time, timedelta
 from components import navbar, render_prediction_data
 from utils import APIFetcher, keep_session_state
 
@@ -15,32 +15,37 @@ if "p_plan_loc" not in st.session_state:
     st.session_state["p_plan_loc"] = LOCATION[0]
 if "p_start_date" not in st.session_state:
     st.session_state["p_start_date"] = None
-if "p_start_time" not in st.session_state:
-    st.session_state["p_start_time"] = None
-if "p_end_date" not in st.session_state:
-    st.session_state["p_end_date"] = None
-if "p_end_time" not in st.session_state:
-    st.session_state["p_end_time"] = None
+if "p_plan_atr" not in st.session_state:
+    st.session_state["p_plan_atr"] = "Temperature"
 
-col1, col2, col3 = st.columns(3)
+col1, col2, col3, col4 = st.columns(4)
 with col1:
     location_radio = st.radio("Available Locations", LOCATION, key="p_plan_loc")
 
 with col2:
-    start_date = st.date_input("Enter the starting date", key="p_start_date")
-    start_time = st.time_input(
-        "Enter the starting time", key="p_start_time", step=THIRTY_MINUTES
+    start_date = st.date_input(
+        "Enter the event date", key="p_start_date", min_value="today"
     )
 
 with col3:
-    end_date = st.date_input("Enter the end date", key="p_end_date")
-    end_time = st.time_input(
-        "Enter the end time", key="p_end_time", step=THIRTY_MINUTES
+    start_time, end_time = st.slider(
+        "Select the time range",
+        value=(time(9, 00), time(12, 00)),
+        step=timedelta(minutes=30),
+        key="p_plan_time",
+    )
+with col4:
+    visualized_atr = st.radio(
+        "Select Attribute", options=["Temperature", "Humidity"], key="p_plan_atr"
     )
 
-if all([start_date, start_time, end_date, end_time]):
+if all([start_date, start_time, end_time]):
     start_datetime = datetime.combine(start_date, start_time)
-    end_datetime = datetime.combine(end_date, end_time)
+    if end_time == time(23, 59, 59, 999999):
+        end_date = start_date + timedelta(days=1)
+        end_datetime = datetime.combine(end_date, time(0, 0))
+    else:
+        end_datetime = datetime.combine(start_date, end_time)
     if start_datetime >= end_datetime:
         st.markdown("""
                     :red[Please select a valid time range]
@@ -48,7 +53,7 @@ if all([start_date, start_time, end_date, end_time]):
     else:
         st.plotly_chart(
             render_prediction_data(
-                "temperature",
+                st.session_state["p_plan_atr"].lower(),
                 st.session_state["p_plan_loc"],
                 start_datetime,
                 end_datetime,

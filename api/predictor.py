@@ -26,7 +26,7 @@ class WeatherPredictor(metaclass=Singleton):
             columns={'index': 'ts'}).to_dict(orient='records')
 
     def forecast_humidity(self, timestamp, location):
-        date = datetime.strptime(timestamp, '%Y/%m/%d %H:%M')
+        date = datetime.strptime(timestamp, '%Y-%m-%dT%H:%M:%S')
         if self.get_hour_difference(datetime.now(), date) <= 24:
             temp = self.forecast_temperature(timestamp, location)
             pressure = self.forecast_pressure(timestamp, location)
