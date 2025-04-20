@@ -2,7 +2,6 @@ import abc
 
 
 class AbstractPredictor(abc.ABC):
-
     @abc.abstractmethod
     def forecast(self, timestamp: str):
         raise NotImplementedError
