@@ -29,6 +29,6 @@ def render_prediction_data(y: str, location: str, start: datetime, end: datetime
     return px.line(data_frame=df, x="ts", y=y,
                     labels={
                         "ts": "Datetime",
-                        y: f"{y.capitalize()}"
+                        y: f"{y.capitalize()} ({get_unit(y)})"
                     })
     

@@ -36,14 +36,8 @@ with col4:
         "Select number of days in the past", options=[1, 7, 14, 30], key="p_days"
     )
 
-col1, col2 = st.columns([0.2, 0.8])
-with col1:
-    write_max_min(
-        st.session_state["p_loc"],
-        st.session_state["p_days"],
-        st.session_state["p_atr"].lower(),
-    )
-with col2:
+col5, col6 = st.columns([0.2, 0.8])
+with col6:
     fig = render_old_data_graph(
             y=st.session_state["p_atr"].lower(),
             location=st.session_state["p_loc"],
@@ -54,3 +48,9 @@ with col2:
         )
     if type(fig) is graph_objects.Figure:
         st.plotly_chart(fig)
+with col5:
+    write_max_min(
+        st.session_state["p_loc"],
+        st.session_state["p_days"],
+        st.session_state["p_atr"].lower(),
+    )

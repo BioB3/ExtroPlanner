@@ -1,7 +1,7 @@
 import streamlit as st
 from datetime import datetime, time, timedelta
 from components import navbar, render_prediction_data
-from utils import APIFetcher, keep_session_state
+from utils import APIFetcher, keep_session_state, write_descriptive_advice
 
 st.set_page_config(page_title="Planning", layout="wide")
 keep_session_state()
@@ -15,28 +15,28 @@ if "p_plan_loc" not in st.session_state:
     st.session_state["p_plan_loc"] = LOCATION[0]
 if "p_start_date" not in st.session_state:
     st.session_state["p_start_date"] = None
+if "p_plan_time" not in st.session_state:
+    st.session_state["p_plan_time"] = (time(9, 00), time(12, 00))
 if "p_plan_atr" not in st.session_state:
     st.session_state["p_plan_atr"] = "Temperature"
 
-col1, col2, col3, col4 = st.columns(4)
+col1, col2, col3 = st.columns(3)
 with col1:
     location_radio = st.radio("Available Locations", LOCATION, key="p_plan_loc")
 
 with col2:
     start_date = st.date_input(
-        "Enter the event date", key="p_start_date", min_value="today"
+        "Enter the event date", key="p_start_date", min_value="today",
+        max_value=(datetime.now() + timedelta(days=366))
     )
 
 with col3:
     start_time, end_time = st.slider(
         "Select the time range",
-        value=(time(9, 00), time(12, 00)),
-        step=timedelta(minutes=30),
+        min_value=time(0, 0),
+        max_value=time(23, 59, 59, 999999),
         key="p_plan_time",
-    )
-with col4:
-    visualized_atr = st.radio(
-        "Select Attribute", options=["Temperature", "Humidity"], key="p_plan_atr"
+        step=timedelta(minutes=30),
     )
 
 if all([start_date, start_time, end_time]):
@@ -51,11 +51,22 @@ if all([start_date, start_time, end_time]):
                     :red[Please select a valid time range]
                     """)
     else:
-        st.plotly_chart(
-            render_prediction_data(
-                st.session_state["p_plan_atr"].lower(),
-                st.session_state["p_plan_loc"],
-                start_datetime,
-                end_datetime,
-            )
+        tab1, tab2 = st.tabs(["Prediction Result", "Graph"])
+        fig = render_prediction_data(
+            st.session_state["p_plan_atr"].lower(),
+            st.session_state["p_plan_loc"],
+            start_datetime,
+            end_datetime,
         )
+        with tab1:
+            write_descriptive_advice(
+                st.session_state["p_plan_loc"], start_datetime, end_datetime
+            )
+        with tab2:
+            col4, col5 = st.columns([0.2, 0.8])
+            with col5:
+                st.plotly_chart(fig)
+            with col4:
+                visualized_atr = st.radio(
+                    "Select Attribute", options=["Temperature", "Humidity"], key="p_plan_atr"
+                )
