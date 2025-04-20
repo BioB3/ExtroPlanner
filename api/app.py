@@ -6,7 +6,7 @@ from .config import DB_HOST, DB_USER, DB_PASSWD, DB_NAME
 from datetime import datetime
 import pandas as pd
 from .predictor import WeatherPredictor
-from .advisor import EventAdvisor
+from .advisor import EventAdvisor, HeatIndexCalculator
 
 pool = PooledDB(
     creator=pymysql,
@@ -75,6 +75,16 @@ class EventWeatherData(BaseModel):
 
 class EventWeatherDataList(BaseModel):
     data: list[EventWeatherData]
+
+
+class HeatIndexData(BaseModel):
+    temperature: float
+    humidity: float
+    ts: str | None = ''
+
+
+class HeatIndexDataList(BaseModel):
+    data: list[HeatIndexData]
 
 
 @router.get("/locations")
@@ -377,6 +387,23 @@ async def get_event_descriptive_advice(weather_data: EventWeatherDataList):
     weather_data = [model.model_dump() for model in weather_data.data]
     result = EventAdvisor.get_descriptive_event_advice(weather_data)
     return result
+
+
+@router.get("/heatindex/")
+async def get_heat_index(temp: float, humidity: float):
+    heat_index = HeatIndexCalculator.calculate_heat_index(temp, humidity)
+    return {"heat_index": heat_index}
+
+
+@router.post("/heatindex/")
+async def get_multiple_heat_index(heat_index_data: HeatIndexDataList):
+    heat_index_data = [model.model_dump() for model in heat_index_data.data]
+    for data in heat_index_data:
+        heat_index = HeatIndexCalculator.calculate_heat_index(data["temperature"], data["humidity"])
+        data["heat_index"] = heat_index
+        data.pop("temperature", None)
+        data.pop("humidity", None)
+    return heat_index_data
 
 
 app_api.include_router(router)
