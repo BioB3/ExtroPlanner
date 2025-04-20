@@ -2,8 +2,10 @@ import pymysql
 from dbutils.pooled_db import PooledDB
 from fastapi import FastAPI, APIRouter, HTTPException
 from pydantic import BaseModel
-from config import DB_HOST, DB_USER, DB_PASSWD, DB_NAME
+from .config import DB_HOST, DB_USER, DB_PASSWD, DB_NAME
 from datetime import datetime
+import pandas as pd
+from .predictor import WeatherPredictor
 
 pool = PooledDB(
     creator=pymysql,
@@ -15,7 +17,7 @@ pool = PooledDB(
     blocking=True,
 )
 
-app = FastAPI()
+app_api = FastAPI()
 router = APIRouter(prefix="/explan")
 
 class BetterBaseModel(BaseModel):
@@ -250,4 +252,67 @@ async def get_min_rainfall(location: str, days: int = 1):
     return RainfallData(*result)
 
 
-app.include_router(router)
+@router.get("/predict/temperature")
+async def get_temperature_prediction(location: str, ts: str):
+    try:
+        date = datetime.strptime(ts, '%Y/%m/%d %H:%M')
+    except (ValueError, TypeError):
+        raise HTTPException(422, f'{ts} is not of format %y/%m/%d %H:%M')
+    result = WeatherPredictor().forecast_temperature(ts, location)
+    if not result:
+        raise HTTPException(404, f'No predictor found for the location:{location}')
+    for data in result:
+        data['location'] = location
+    return result
+
+
+@router.get("/predict/humidity")
+async def get_humidity_prediction(location: str, ts: str):
+    try:
+        date = datetime.strptime(ts, '%Y/%m/%d %H:%M')
+    except (ValueError, TypeError):
+        raise HTTPException(422, f'{ts} is not of format %y/%m/%d %H:%M')
+    result = WeatherPredictor().forecast_humidity(ts, location)
+    if not result:
+        raise HTTPException(404, f'No predictor found for the location:{location}')
+    for data in result:
+        data['location'] = location
+    return result
+
+
+@router.get("/predict/pressure")
+async def get_pressure_prediction(location: str, ts: str):
+    try:
+        date = datetime.strptime(ts, '%Y/%m/%d %H:%M')
+    except (ValueError, TypeError):
+        raise HTTPException(422, f'{ts} is not of format %y/%m/%d %H:%M')
+    result = WeatherPredictor().forecast_pressure(ts, location)
+    if not result:
+        raise HTTPException(404, f'No predictor found for the location:{location}')
+    for data in result:
+        data['location'] = location
+    return result
+
+
+@router.get("/predict/rain")
+async def get_rain_prediction(location, start, end):
+    try:
+        start_date = datetime.strptime(start, '%Y/%m/%d %H:%M')
+        end_date = datetime.strptime(end, '%Y/%m/%d %H:%M')
+    except (ValueError, TypeError):
+        raise HTTPException(422, f'{start}, {end} is not of format %y/%m/%d %H:%M')
+    if start_date > end_date:
+        raise HTTPException(422, 'starting date greater than ending date.')
+    temp = pd.DataFrame(WeatherPredictor().forecast_temperature(end, location))
+    humidity = pd.DataFrame(WeatherPredictor().forecast_humidity(end, location))
+    pressure = pd.DataFrame(WeatherPredictor().forecast_pressure(end, location))
+    ts = temp['ts']
+    weather_data = (temp.merge(humidity, on=["ts"], how="outer")
+                    .merge(pressure, on=["ts"], how="outer").drop(columns=['ts']))
+    result = WeatherPredictor().forecast_rain(weather_data)
+    for i in range(len(result)):
+        result[i]['ts'] = ts.iloc[i]
+        result[i]['location'] = location
+    return result
+
+app_api.include_router(router)
