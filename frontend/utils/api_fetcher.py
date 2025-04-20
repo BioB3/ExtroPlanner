@@ -1,5 +1,6 @@
 import requests
 import streamlit as st
+import pandas as pd
 from datetime import datetime
 
 
@@ -62,3 +63,15 @@ class APIFetcher:
         if min_response.status_code != 200:
             raise ValueError(f"{min_response.status_code}: {min_response.text}")
         return (max_response.json(), min_response.json())
+
+
+    @classmethod
+    @st.cache_data
+    def get_temperature_prediction(cls, location: str, start: datetime, end: datetime):
+        url = f"{cls.__BASE_URL}/predict/temperature/?location={location}&ts={end.isoformat()}"
+        response = requests.get(url)
+        if response.status_code != 200:
+            raise ValueError(f"{response.status_code}: {response.text}")
+        data = response.json()
+        df = pd.DataFrame.from_dict(data)
+        return df[df["ts"] >= start.isoformat()]

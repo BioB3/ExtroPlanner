@@ -1,6 +1,6 @@
 import streamlit as st
 from datetime import datetime
-from components import navbar, render_graph
+from components import navbar, render_prediction_data
 from utils import APIFetcher, keep_session_state
 
 st.set_page_config(page_title="Planning", layout="wide")
@@ -41,14 +41,16 @@ with col3:
 if all([start_date, start_time, end_date, end_time]):
     start_datetime = datetime.combine(start_date, start_time)
     end_datetime = datetime.combine(end_date, end_time)
-    if(start_datetime >= end_datetime):
+    if start_datetime >= end_datetime:
         st.markdown("""
                     :red[Please select a valid time range]
                     """)
     else:
-        st.markdown(f"""
-                    Planned Event\n
-                    Datetime: {datetime.combine(start_date, start_time)} -
-                    {datetime.combine(end_date, end_time)}\n
-                    Location: {location_radio}
-                    """)
+        st.plotly_chart(
+            render_prediction_data(
+                "temperature",
+                st.session_state["p_plan_loc"],
+                start_datetime,
+                end_datetime,
+            )
+        )
