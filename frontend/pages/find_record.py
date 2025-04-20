@@ -3,7 +3,7 @@ from datetime import datetime
 from components.navbar import navbar
 from utils import APIFetcher, write_closest_time, keep_session_state
 
-st.set_page_config(page_title="Home", layout="wide")
+st.set_page_config(page_title="Find Record", layout="wide")
 keep_session_state()
 LOCATION = APIFetcher.get_location()
 THIRTY_MINUTES = 1800

@@ -18,5 +18,17 @@ if "p_loc" not in st.session_state:
     st.session_state["p_loc"] = LOCATION[0]
 
 location_radio = st.radio("Available Locations", LOCATION, key="p_loc")
-st.markdown("Latest Reading")
 write_latest_data(st.session_state["p_loc"])
+
+with st.container(height=170):
+    st.markdown("""
+                #### Rain and Heat index prediction for the next 24 hours
+                """)
+
+    num_rows = 12
+    num_columns = 4
+
+    for _ in range(num_rows):
+        cols = st.columns(num_columns)
+        for col in cols:
+            tile = col.container(height=50)

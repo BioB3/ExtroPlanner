@@ -20,11 +20,13 @@ def write_closest_time(location: str, datetime: datetime):
 
 def write_max_min(location: str, days: int, attribute: str):
     max_data, min_data = APIFetcher.get_max_min(location, attribute, days)
+    st.markdown("***")
     st.markdown(
-        f"Maximum {attribute} of the past {days} day(s) is {max_data[attribute]} on\
-    {datetime.strptime(max_data["ts"], "%Y-%m-%dT%H:%M:%S")}"
-    )
-    st.markdown(
-        f"Minimum {attribute} of the past {days} day(s) is {min_data[attribute]} on\
-    {datetime.strptime(min_data["ts"], "%Y-%m-%dT%H:%M:%S")}"
+        f"""
+        {attribute.capitalize()} of the past {days} day(s)\n
+        Maximum: {max_data[attribute]} \n
+        on {datetime.strptime(max_data["ts"], "%Y-%m-%dT%H:%M:%S")}\n
+        Minimum: {min_data[attribute]} \n
+        on {datetime.strptime(min_data["ts"], "%Y-%m-%dT%H:%M:%S")}
+        """
     )
