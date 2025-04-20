@@ -1,6 +1,5 @@
 from datetime import datetime
 from typing import Collection, Any
-from .predictor import WeatherPredictor
 
 
 class HeatIndexCalculator:
@@ -64,4 +63,109 @@ class EventAdvisor:
 
     @classmethod
     def get_descriptive_event_advice(cls, weather_data):
-        pass
+        metrics = cls.get_event_metrics(weather_data)
+        decision = cls.get_host_event_decision(
+            metrics["rain_ratio"],
+            metrics["max_heat"],
+            metrics["heat_ratio"],
+            metrics["duration"],
+        )
+        data = {}
+        if decision:
+            data["suggestion"] = "Can host event."
+            data["description"] = "Overall weather is suitable for outdoor activites."
+        else:
+            data["suggestion"] = "Should not host event."
+            data["description"] = "Weather is unsuitable for outdoor activities."
+        data["items"] = cls.get_suggested_equipment(
+            metrics["rain_raio"], metrics["heat_ratio"], metrics["duration"]
+        )
+        rain_periods, heat_periods = cls.get_extreme_weather_periods(weather_data)
+        data["rain_periods"] = rain_periods
+        data["heat_periods"] = heat_periods
+        return data
+
+    @classmethod
+    def get_extreme_weather_periods(cls, weather_data):
+        rain_periods = []
+        start = None
+        end = None
+        for entry in weather_data:
+            if entry["weather"] == "rain":
+                if not start:
+                    start = entry["ts"]
+                end = entry["ts"]
+            else:
+                if start:
+                    rain_periods.append(f"{start} -- {end}")
+                    start = None
+        if start:
+            rain_periods.append(f"{start} -- {end}")
+
+        indexes = cls.get_heat_index(weather_data)
+        hot_periods = []
+        start = None
+        end = None
+        for i in range(len(indexes)):
+            if indexes[i] >= cls.__heat_warn:
+                if not start:
+                    start = weather_data[i]["ts"]
+                end = weather_data[i]["ts"]
+            else:
+                if start:
+                    hot_periods.append(f"{start} -- {end}")
+                    start = None
+        if start:
+            hot_periods.append(f"{start} -- {end}")
+        return rain_periods, hot_periods
+
+    @classmethod
+    def get_event_metrics(cls, weather_data):
+        rain_count = sum(x["weather"] == "rain" for x in weather_data)
+        rain_ratio = rain_count / len(weather_data)
+        heat_indexes = cls.get_heat_index(weather_data)
+        max_heat = max(heat_indexes)
+        heat_ratio = sum(index > cls.__heat_warn for index in heat_indexes) / len(
+            heat_indexes
+        )
+        start_time = datetime.fromisoformat(weather_data[0]["ts"])
+        end_time = datetime.fromisoformat(weather_data[-1]["ts"])
+        duration = abs(end_time - start_time).seconds // 360
+        return {
+            "rain_ratio": rain_ratio,
+            "max_heat": max_heat,
+            "heat_ratio": heat_ratio,
+            "duration": duration,
+        }
+
+    @classmethod
+    def get_host_event_decision(cls, rain_ratio, max_heat, heat_ratio, duration):
+        if rain_ratio >= cls.__rain_threshold:
+            return False
+        if max_heat > cls.__heat_danger:
+            return False
+        if duration <= 3:
+            return True
+        if heat_ratio >= cls.__heat_threshold:
+            return False
+        return True
+
+    @classmethod
+    def get_suggested_equipment(cls, rain_ratio, heat_ratio, duration):
+        items = []
+        if rain_ratio > 0:
+            items.append("Umbrellas")
+        if rain_ratio > 0.5:
+            items.append("Tents")
+        if heat_ratio > 0.2:
+            items.append("Water")
+        if duration <= 3:
+            return items
+        if heat_ratio > 0.5:
+            items.append("Fans")
+        if heat_ratio > 0.7:
+            if duration > 5:
+                items.append("Tents")
+            else:
+                items.append("Umbrellas")
+        return items
