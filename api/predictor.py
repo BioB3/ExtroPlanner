@@ -22,8 +22,12 @@ class WeatherPredictor(metaclass=Singleton):
     def forecast_temperature(self, timestamp, location):
         predicted = self.temp_predictor.forecast(timestamp)
         predicted.index.strftime("%Y-%m-%d %H:%M:%S")
-        return predicted.rename("temperature").reset_index().rename(
-            columns={'index': 'ts'}).to_dict(orient='records')
+        return (
+            predicted.rename("temperature")
+            .reset_index()
+            .rename(columns={"index": "ts"})
+            .to_dict(orient="records")
+        )
 
     def forecast_humidity(self, timestamp, location):
         # date = datetime.strptime(timestamp, '%Y-%m-%dT%H:%M:%S')
@@ -39,18 +43,26 @@ class WeatherPredictor(metaclass=Singleton):
 
         predicted = self.humidity_predictor.forecast(timestamp)
         predicted.index.strftime("%Y-%m-%d %H:%M:%S")
-        return predicted.rename("humidity").reset_index().rename(
-            columns={'index': 'ts'}).to_dict(orient='records')
+        return (
+            predicted.rename("humidity")
+            .reset_index()
+            .rename(columns={"index": "ts"})
+            .to_dict(orient="records")
+        )
 
     def forecast_pressure(self, timestamp, location):
         predicted = self.pressure_predictor.forecast(timestamp)
         predicted.index.strftime("%Y-%m-%d %H:%M:%S")
-        return predicted.rename("pressure").reset_index().rename(
-            columns={'index': 'ts'}).to_dict(orient='records')
+        return (
+            predicted.rename("pressure")
+            .reset_index()
+            .rename(columns={"index": "ts"})
+            .to_dict(orient="records")
+        )
 
     def forecast_rain(self, weather_data):
         predicted = self.rain_classifier.classify(weather_data)
-        return [{'weather': item} for item in predicted]
+        return [{"weather": item} for item in predicted]
 
     @staticmethod
     def get_hour_difference(start_date: datetime, end_date: datetime):
