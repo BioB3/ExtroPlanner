@@ -6,6 +6,7 @@ from .config import DB_HOST, DB_USER, DB_PASSWD, DB_NAME
 from datetime import datetime
 import pandas as pd
 from .predictor import WeatherPredictor
+from .advisor import EventAdvisor
 
 pool = PooledDB(
     creator=pymysql,
@@ -62,6 +63,18 @@ class RainfallData(BetterBaseModel):
     location: str
     rainfall: float
     weather: str
+
+
+class EventWeatherData(BaseModel):
+    weather: str
+    ts: str
+    location: str | None = ''
+    temperature: float
+    humidity: float
+
+
+class EventWeatherDataList(BaseModel):
+    data: list[EventWeatherData]
 
 
 @router.get("/locations")
@@ -315,6 +328,54 @@ async def get_rain_prediction(location, start, end):
     for i in range(len(result)):
         result[i]["ts"] = ts.iloc[i]
         result[i]["location"] = location
+    return result
+
+
+@router.get("/event/conditions")
+async def get_event_conditions(location, start, end):
+    try:
+        start_date = datetime.strptime(start, "%Y-%m-%dT%H:%M:%S")
+        end_date = datetime.strptime(end, "%Y-%m-%dT%H:%M:%S")
+    except (ValueError, TypeError):
+        raise HTTPException(422, f"{start}, {end} is not of format %Y-%m-%dT%H:%M:%S")
+    if start_date > end_date:
+        raise HTTPException(422, "starting date greater than ending date.")
+    temp = pd.DataFrame(WeatherPredictor().forecast_temperature(end, location))
+    humidity = pd.DataFrame(
+        WeatherPredictor().forecast_humidity(end, location))
+    pressure = pd.DataFrame(
+        WeatherPredictor().forecast_pressure(end, location))
+    ts = temp["ts"]
+    weather_data = (
+        temp.merge(humidity, on=["ts"], how="outer")
+        .merge(pressure, on=["ts"], how="outer")
+        .drop(columns=["ts"])
+    )
+    data = {}
+    result = WeatherPredictor().forecast_rain(weather_data)
+    for i in range(len(result)):
+        result[i]["ts"] = ts.iloc[i]
+        result[i]["location"] = location
+        result[i]["temperature"] = temp.iloc[i]["temperature"]
+        result[i]["humidity"] = humidity.iloc[i]["humidity"]
+    data["weather"] = result
+
+    rain = []
+    for i in range(len(result)):
+        if result[i] == "rain":
+            rain.append(ts.iloc[i])
+    data["rain"] = rain
+    weather_data = temp.merge(humidity, on=["ts"], how="outer").to_dict(orient='records')
+    summary = EventAdvisor.get_weather_conditions_summary(weather_data)
+    data["max_temp"] = summary["max_temp"]
+    data["max_heat"] = summary["max_heat"]
+    return data
+
+
+@router.post("/event/describe")
+async def get_event_descriptive_advice(weather_data: EventWeatherDataList):
+    weather_data = [model.model_dump() for model in weather_data.data]
+    result = EventAdvisor.get_descriptive_event_advice(weather_data)
     return result
 
 

@@ -78,7 +78,7 @@ class EventAdvisor:
             data["suggestion"] = "Should not host event."
             data["description"] = "Weather is unsuitable for outdoor activities."
         data["items"] = cls.get_suggested_equipment(
-            metrics["rain_raio"], metrics["heat_ratio"], metrics["duration"]
+            metrics["rain_ratio"], metrics["heat_ratio"], metrics["duration"]
         )
         rain_periods, heat_periods = cls.get_extreme_weather_periods(weather_data)
         data["rain_periods"] = rain_periods
