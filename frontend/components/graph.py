@@ -1,7 +1,7 @@
 import pandas as pd
 import plotly.express as px
 from datetime import datetime
-from utils import APIFetcher
+from utils import APIFetcher, get_unit
 
 
 def render_old_data_graph(y: str, location: str, days: int, detail: bool = False):
@@ -14,7 +14,7 @@ def render_old_data_graph(y: str, location: str, days: int, detail: bool = False
         return px.line(data_frame=df, x="ts", y=y,
                     labels={
                         "ts": "Datetime",
-                        y: f"{y.capitalize()}"
+                        y: f"{y.capitalize()} ({get_unit(y)})"
                     })
     except ValueError:
         return None

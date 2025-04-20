@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime, timedelta
 from .api_fetcher import APIFetcher
+from .get_unit import get_unit
 
 
 def write_latest_data(location: str):
@@ -41,9 +42,9 @@ def write_max_min(location: str, days: int, attribute: str):
         st.markdown(
             f"""
             {attribute.capitalize()} of the past {days} day(s)\n
-            Maximum: {max_data[attribute]} \n
+            Maximum: {max_data[attribute]} {get_unit(attribute)}\n
             on {datetime.strptime(max_data["ts"], "%Y-%m-%dT%H:%M:%S")}\n
-            Minimum: {min_data[attribute]} \n
+            Minimum: {min_data[attribute]} {get_unit(attribute)}\n
             on {datetime.strptime(min_data["ts"], "%Y-%m-%dT%H:%M:%S")}
             """
         )
