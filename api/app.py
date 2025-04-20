@@ -4,6 +4,7 @@ from fastapi import FastAPI, APIRouter, HTTPException
 from pydantic import BaseModel
 from .config import DB_HOST, DB_USER, DB_PASSWD, DB_NAME
 from datetime import datetime
+import pandas as pd
 from .predictor import WeatherPredictor
 
 pool = PooledDB(
@@ -292,5 +293,26 @@ async def get_pressure_prediction(location: str, ts: str):
         data['location'] = location
     return result
 
+
+@router.get("/predict/rain")
+async def get_rain_prediction(location, start, end):
+    try:
+        start_date = datetime.strptime(start, '%Y/%m/%d %H:%M')
+        end_date = datetime.strptime(end, '%Y/%m/%d %H:%M')
+    except (ValueError, TypeError):
+        raise HTTPException(422, f'{start}, {end} is not of format %y/%m/%d %H:%M')
+    if start_date > end_date:
+        raise HTTPException(422, 'starting date greater than ending date.')
+    temp = pd.DataFrame(WeatherPredictor().forecast_temperature(end, location))
+    humidity = pd.DataFrame(WeatherPredictor().forecast_humidity(end, location))
+    pressure = pd.DataFrame(WeatherPredictor().forecast_pressure(end, location))
+    ts = temp['ts']
+    weather_data = (temp.merge(humidity, on=["ts"], how="outer")
+                    .merge(pressure, on=["ts"], how="outer").drop(columns=['ts']))
+    result = WeatherPredictor().forecast_rain(weather_data)
+    for i in range(len(result)):
+        result[i]['ts'] = ts.iloc[i]
+        result[i]['location'] = location
+    return result
 
 app_api.include_router(router)
