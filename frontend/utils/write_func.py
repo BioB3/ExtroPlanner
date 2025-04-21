@@ -3,7 +3,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 from .api_fetcher import APIFetcher
 from .get_unit import get_unit
-from .format_datetime import format_datetime
+from .format_datetime import format_datetime, format_datetime_range
 
 
 def write_latest_data(location: str):
@@ -108,13 +108,13 @@ def write_descriptive_advice(location: str, start: datetime, end: datetime):
     if descriptive_advice["rain_periods"]:
         st.markdown("Potential rain at")
         for ts_range in descriptive_advice["rain_periods"]:
-            st.markdown({ts_range})
+            st.markdown({format_datetime_range(ts_range)})
     else:
         st.markdown("No potential rain forcasted")
 
     if descriptive_advice["heat_periods"]:
         st.markdown("Potential high heat at")
         for ts_range in descriptive_advice["heat_periods"]:
-            st.markdown({ts_range})
+            st.markdown({format_datetime_range(ts_range)})
     else:
         st.markdown("No potential high heat forcasted")
