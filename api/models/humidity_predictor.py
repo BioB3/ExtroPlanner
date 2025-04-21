@@ -8,14 +8,10 @@ import os
 class HumidityPredictor(AbstractPredictor):
     def __init__(self, location: str):
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        model_dir = os.path.join(
-            current_dir, "trained_models/data", "humidity_SARIMA.pkl"
-        )
+        model_dir = os.path.join(current_dir, "trained_models", "humidity_SARIMA.pkl")
         self.sarima = self.__get_model(SARIMAXResults.load(model_dir), location)
 
-        model_dir = os.path.join(
-            current_dir, "trained_models/data", "humidity_SARIMAX.pkl"
-        )
+        model_dir = os.path.join(current_dir, "trained_models", "humidity_SARIMAX.pkl")
         self.sarimax = self.__get_model(
             SARIMAXResults.load(model_dir), location, sarimax=True
         )
@@ -34,7 +30,7 @@ class HumidityPredictor(AbstractPredictor):
         seasonal_order = saved_model.model.seasonal_order
         current_dir = os.path.dirname(os.path.abspath(__file__))
         data_dir = os.path.join(
-            current_dir, "trained_models/data", location + "_train_data.csv"
+            current_dir, "trained_models", "data", location + "_train_data.csv"
         )
         dataset = pd.read_csv(data_dir)
         if sarimax:

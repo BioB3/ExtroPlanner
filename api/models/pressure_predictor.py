@@ -23,7 +23,7 @@ class PressurePredictor(AbstractPredictor):
         seasonal_order = saved_model.model.seasonal_order
         current_dir = os.path.dirname(os.path.abspath(__file__))
         data_dir = os.path.join(
-            current_dir, "trained_models/data", location + "_train_data.csv"
+            current_dir, "trained_models", "data", location + "_train_data.csv"
         )
         dataset = pd.read_csv(data_dir)
         model = SARIMAX(
