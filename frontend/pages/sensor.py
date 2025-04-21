@@ -23,7 +23,7 @@ def encode_co(co_value: float):
 
 def get_warnings_tips(co_value: float):
     if co_value < 14:
-        return ""
+        return "Normal CO levels."
     elif co_value < 25:
         return "Moderate contamination risk.\nSymptoms may devolop at this level.\n\
 Leave the area if you feel unwell.\nPeople with heart/lung issues should call their doctor."
@@ -41,10 +41,7 @@ try:
     df = pd.DataFrame.from_dict([data]).drop(columns=["ts"])
     df["co"] = df["co"].apply(encode_co)
     st.table(df)
-
-    tips = get_warnings_tips(data["co"])
-    if tips:
-        st.markdown(tips)
+    st.markdown(get_warnings_tips(data["co"]))
 
 except ValueError as e:
     error_message = str(e)
