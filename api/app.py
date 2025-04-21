@@ -108,10 +108,12 @@ async def get_locations() -> list[str]:
 
 @router.get("/weather")
 async def get_closest_time_weather(
-    location: str, datetime: datetime = datetime.now()
+    location: str, date_time: str = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
 ) -> WeatherData:
-    if not location:
-        raise HTTPException(400, "Please specify a location")
+    try:
+        date = datetime.strptime(date_time,'%Y-%m-%dT%H:%M:%S')
+    except (ValueError, TypeError):
+        raise HTTPException(422, f'{date_time} is not of format %Y-%m-%dT%H:%M:%S')
     with pool.connection() as conn, conn.cursor() as cs:
         cs.execute(f"""
             SELECT ts, location, wind_sp, wind_deg,
@@ -119,7 +121,7 @@ async def get_closest_time_weather(
             cloud_per, rain_amt, weather
             FROM `weather_cleaned`
             WHERE location = "{location}"
-            ORDER BY ABS(TIMESTAMPDIFF(SECOND, ts, "{datetime.isoformat()}"))
+            ORDER BY ABS(TIMESTAMPDIFF(SECOND, ts, "{date.isoformat()}"))
             ASC LIMIT 1;
         """)
         result = cs.fetchone()
@@ -130,8 +132,8 @@ async def get_closest_time_weather(
 
 @router.get("/weather/last")
 async def get_last_days_weather(location: str, days: int = 1):
-    if not location:
-        raise HTTPException(400, "Please specify a location")
+    if days < 0:
+        raise HTTPException(422, f"Given days:{days} is not positive.")
     with pool.connection() as conn, conn.cursor() as cs:
         cs.execute(f"""
             SELECT ts, location, wind_sp, wind_deg,
@@ -149,8 +151,8 @@ async def get_last_days_weather(location: str, days: int = 1):
 
 @router.get("/weather/aggregate")
 async def get_aggregate_weather(location: str, days: int = 1):
-    if not location:
-        raise HTTPException(400, "Please specify a location")
+    if days < 0:
+        raise HTTPException(422, f"Given days:{days} is not positive.")
     with pool.connection() as conn, conn.cursor() as cs:
         cs.execute(f"""
             SELECT DATE(ts) AS ts_agg, location, AVG(wind_sp), AVG(wind_deg),
@@ -169,8 +171,8 @@ async def get_aggregate_weather(location: str, days: int = 1):
 
 @router.get("/temperature/max")
 async def get_max_temperature(location: str, days: int = 1):
-    if not location:
-        raise HTTPException(400, "Please specify a location")
+    if days < 0:
+        raise HTTPException(422, f"Given days:{days} is not positive.")
     with pool.connection() as conn, conn.cursor() as cs:
         cs.execute(f"""
             SELECT ts, location, temperature
@@ -188,8 +190,8 @@ async def get_max_temperature(location: str, days: int = 1):
 
 @router.get("/temperature/min")
 async def get_min_temperature(location: str, days: int = 1):
-    if not location:
-        raise HTTPException(400, "Please specify a location")
+    if days < 0:
+        raise HTTPException(422, f"Given days:{days} is not positive.")
     with pool.connection() as conn, conn.cursor() as cs:
         cs.execute(f"""
             SELECT ts, location, temperature
@@ -207,8 +209,8 @@ async def get_min_temperature(location: str, days: int = 1):
 
 @router.get("/humidity/max")
 async def get_max_humidity(location: str, days: int = 1):
-    if not location:
-        raise HTTPException(400, "Please specify a location")
+    if days < 0:
+        raise HTTPException(422, f"Given days:{days} is not positive.")
     with pool.connection() as conn, conn.cursor() as cs:
         cs.execute(f"""
             SELECT ts, location, humidity
@@ -226,8 +228,8 @@ async def get_max_humidity(location: str, days: int = 1):
 
 @router.get("/humidity/min")
 async def get_min_humidity(location: str, days: int = 1):
-    if not location:
-        raise HTTPException(400, "Please specify a location")
+    if days < 0:
+        raise HTTPException(422, f"Given days:{days} is not positive.")
     with pool.connection() as conn, conn.cursor() as cs:
         cs.execute(f"""
             SELECT ts, location, humidity
@@ -245,8 +247,8 @@ async def get_min_humidity(location: str, days: int = 1):
 
 @router.get("/rainfall/max")
 async def get_max_rainfall(location: str, days: int = 1):
-    if not location:
-        raise HTTPException(400, "Please specify a location")
+    if days < 0:
+        raise HTTPException(422, f"Given days:{days} is not positive.")
     with pool.connection() as conn, conn.cursor() as cs:
         cs.execute(f"""
             SELECT ts, location, rain_amt, weather
@@ -264,8 +266,8 @@ async def get_max_rainfall(location: str, days: int = 1):
 
 @router.get("/rainfall/min")
 async def get_min_rainfall(location: str, days: int = 1):
-    if not location:
-        raise HTTPException(400, "Please specify a location")
+    if days < 0:
+        raise HTTPException(422, f"Given days:{days} is not positive.")
     with pool.connection() as conn, conn.cursor() as cs:
         cs.execute(f"""
             SELECT ts, location, rain_amt, weather
