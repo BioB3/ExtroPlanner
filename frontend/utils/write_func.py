@@ -9,7 +9,7 @@ from .format_datetime import format_datetime
 def write_latest_data(location: str):
     try:
         data = APIFetcher.get_closest_weather(location=location)
-        st.markdown(f"Last Updated: {format_datetime(data["ts"])}")
+        st.markdown(f"Last Updated: {format_datetime(data['ts'])}")
         df = pd.DataFrame.from_dict([data]).drop(columns=["ts"])
         st.table(df)
     except ValueError as e:
