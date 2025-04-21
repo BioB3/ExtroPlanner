@@ -7,6 +7,7 @@ import os
 
 class HumidityPredictor(AbstractPredictor):
     def __init__(self, location: str):
+        self.last_obs = None
         current_dir = os.path.dirname(os.path.abspath(__file__))
         model_dir = os.path.join(current_dir, "trained_models", "humidity_SARIMA.pkl")
         self.sarima = self.__get_model(SARIMAXResults.load(model_dir), location)
@@ -33,10 +34,12 @@ class HumidityPredictor(AbstractPredictor):
             current_dir, "trained_models", "data", location + "_train_data.csv"
         )
         dataset = pd.read_csv(data_dir)
+        self.last_obs = dataset.iloc[-1]["ts"]
+        dataset["ts"] = pd.to_datetime(dataset["ts"])
         if sarimax:
             model = SARIMAX(
-                dataset.set_index("ts")["humidity"],
-                exog=dataset.set_index("ts")[["temperature", "pressure"]],
+                dataset.set_index("ts")["humidity"].asfreq('30min'),
+                exog=dataset.set_index("ts")[["temperature", "pressure"]].asfreq("30min"),
                 order=order,
                 seasonal_order=seasonal_order,
             )
@@ -44,7 +47,7 @@ class HumidityPredictor(AbstractPredictor):
             return model
 
         model = SARIMAX(
-            dataset.set_index("ts")["humidity"],
+            dataset.set_index("ts")["humidity"].asfreq("30min"),
             order=order,
             seasonal_order=seasonal_order,
         )

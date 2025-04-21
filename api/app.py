@@ -289,6 +289,8 @@ async def get_temperature_prediction(location: str, ts: str):
         date = datetime.strptime(ts, "%Y-%m-%dT%H:%M:%S")
     except (ValueError, TypeError):
         raise HTTPException(422, f"{ts} is not of format %Y-%m-%dT%H:%M:%S")
+    if date < datetime.now():
+        raise HTTPException(400, "Cannot predict past dates.")
     location = location.replace(' ', '_')
     locations = WeatherPredictor(pool).get_valid_predictor_locations()
     if location not in locations:
@@ -305,6 +307,8 @@ async def get_humidity_prediction(location: str, ts: str):
         date = datetime.strptime(ts, "%Y-%m-%dT%H:%M:%S")
     except (ValueError, TypeError):
         raise HTTPException(422, f"{ts} is not of format %Y-%m-%dT%H:%M:%S")
+    if date < datetime.now():
+        raise HTTPException(400, "Cannot predict past dates.")
     location = location.replace(' ', '_')
     locations = WeatherPredictor(pool).get_valid_predictor_locations()
     if location not in locations:
@@ -322,6 +326,8 @@ async def get_pressure_prediction(location: str, ts: str):
         date = datetime.strptime(ts, "%Y-%m-%dT%H:%M:%S")
     except (ValueError, TypeError):
         raise HTTPException(422, f"{ts} is not of format %Y-%m-%dT%H:%M:%S")
+    if date < datetime.now():
+        raise HTTPException(400, "Cannot predict past dates.")
     location = location.replace(' ', '_')
     locations = WeatherPredictor(pool).get_valid_predictor_locations()
     if location not in locations:
@@ -342,6 +348,8 @@ async def get_rain_prediction(location, start, end):
         raise HTTPException(422, f"{start}, {end} is not of format %Y-%m-%dT%H:%M:%S")
     if start_date > end_date:
         raise HTTPException(422, "starting date greater than ending date.")
+    if start_date < datetime.now() or end_date < datetime.now():
+        raise HTTPException(400, "Cannot predict past dates.")
     location = location.replace(' ', '_')
     locations = WeatherPredictor(pool).get_valid_predictor_locations()
     if location not in locations:
@@ -369,6 +377,8 @@ async def get_event_conditions(location, start, end):
         end_date = datetime.strptime(end, "%Y-%m-%dT%H:%M:%S")
     except (ValueError, TypeError):
         raise HTTPException(422, f"{start}, {end} is not of format %Y-%m-%dT%H:%M:%S")
+    if start_date < datetime.now() or end_date < datetime.now():
+        raise HTTPException(400, "Cannot predict past dates.")
     if start_date > end_date:
         raise HTTPException(422, "starting date greater than ending date.")
     location = location.replace(' ', '_')

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from .models import *
 import pandas as pd
 import os
@@ -52,8 +52,19 @@ class WeatherPredictor(metaclass=Singleton):
         return self.pressure_predictors[location]
 
     def forecast_temperature(self, timestamp, location):
-        predicted = self.get_temperature_predictor(location).forecast(timestamp)
+        date = datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S")
+        predictor = self.get_temperature_predictor(location)
+        last_obs = datetime.strptime(predictor.last_obs, "%Y-%m-%d %H:%M:%S")
+        predicted = predictor.forecast(timestamp)
         predicted.index.strftime("%Y-%m-%d %H:%M:%S")
+        if self.get_date_difference(last_obs, date) > 7:
+            refit_data = self.get_refit_data(predictor.last_obs)
+            data = self.validate_refit_data(refit_data)
+            if data:
+                refit_model = predictor.refit(data)
+                adj_predicted = refit_model.forecast(timestamp)
+                predicted = (predicted + adj_predicted) / 2
+                
         return (
             predicted.rename("temperature")
             .reset_index()
@@ -88,8 +99,19 @@ class WeatherPredictor(metaclass=Singleton):
         )
 
     def forecast_pressure(self, timestamp, location):
-        predicted = self.get_pressure_predictor(location).forecast(timestamp)
+        date = datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S")
+        predictor = self.get_pressure_predictor(location)
+        last_obs = datetime.strptime(predictor.last_obs, "%Y-%m-%d %H:%M:%S")
+        predicted = predictor.forecast(timestamp)
         predicted.index.strftime("%Y-%m-%d %H:%M:%S")
+        if self.get_date_difference(last_obs, date) > 7:
+            refit_data = self.get_refit_data(predictor.last_obs)
+            data = self.validate_refit_data(refit_data)
+            if data:
+                refit_model = predictor.refit(data)
+                adj_predicted = refit_model.forecast(timestamp)
+                predicted = (predicted + adj_predicted) /2
+                
         return (
             predicted.rename("pressure")
             .reset_index()
@@ -100,6 +122,34 @@ class WeatherPredictor(metaclass=Singleton):
     def forecast_rain(self, weather_data):
         predicted = self.rain_classifier.classify(weather_data)
         return [{"weather": item} for item in predicted]
+
+    def get_refit_data(self, last_obs: str):
+        t_start = datetime.strptime(last_obs, "%Y-%m-%d %H:%M:%S")
+        t_end = t_start + timedelta(days=7)
+        with self.__db.connection() as conn, conn.cursor() as cs:
+            cs.execute(f"""
+                SELECT ts, temperature, humidity, pressure
+                FROM `weather_cleaned`
+                WHERE ts BETWEEN '{t_start.isoformat()}' AND '{t_end.isoformat()}'
+            """)
+        fields = ["ts", "temperature", "humidity", "pressure"]
+        refit_data = [dict(zip(fields, data))for data in cs.fetchall()]
+        return refit_data
+
+    @staticmethod
+    def validate_refit_data(refit_data):
+        data = pd.DataFrame(refit_data)
+        data['ts'] = pd.to_datetime(data['ts'])
+        deltas = data['ts'].diff()[1:]
+        gaps = deltas[deltas > timedelta(minutes=30)]
+        if gaps.empty:
+            return data
+        return
+
+    @staticmethod
+    def get_date_difference(start_date: datetime, end_date: datetime):
+        time_diff = abs(end_date - start_date)
+        return time_diff.days
 
     @staticmethod
     def get_hour_difference(start_date: datetime, end_date: datetime):
