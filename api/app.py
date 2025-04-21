@@ -87,6 +87,13 @@ class HeatIndexDataList(BaseModel):
     data: list[HeatIndexData]
 
 
+class SensorData(BetterBaseModel):
+    ts: datetime
+    temperature: float
+    humidity: float
+    co: float
+
+
 @router.get("/locations")
 async def get_locations() -> list[str]:
     with pool.connection() as conn, conn.cursor() as cs:
@@ -404,6 +411,21 @@ async def get_multiple_heat_index(heat_index_data: HeatIndexDataList):
         data.pop("temperature", None)
         data.pop("humidity", None)
     return heat_index_data
+
+
+@router.get("/sensor/latest")
+async def get_latest_sensor():
+    with pool.connection() as conn, conn.cursor() as cs:
+        cs.execute("""
+            SELECT ts, temperature, humidity, co
+            FROM `weather_sensor`
+            ORDER BY ts DESC
+            LIMIT 1;
+        """)
+        result = cs.fetchone()
+    if not result:
+        raise HTTPException(404, "No sensor data found")
+    return SensorData(*result)
 
 
 app_api.include_router(router)

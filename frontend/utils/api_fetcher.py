@@ -138,3 +138,11 @@ class APIFetcher:
         if response.status_code != 200:
             raise ValueError(f"{response.status_code}: {response.text}")
         return response.json()
+
+    @classmethod
+    def get_latest_sensor(cls):
+        url = f"{cls.__BASE_URL}/sensor/latest"
+        response = requests.get(url)
+        if response.status_code != 200:
+            raise ValueError(f"{response.status_code}: {response.text}")
+        return response.json()
