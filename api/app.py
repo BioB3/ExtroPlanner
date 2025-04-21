@@ -87,6 +87,13 @@ class HeatIndexDataList(BaseModel):
     data: list[HeatIndexData]
 
 
+class SensorData(BetterBaseModel):
+    ts: datetime
+    temperature: float
+    humidity: float
+    co: float
+
+
 @router.get("/locations")
 async def get_locations() -> list[str]:
     with pool.connection() as conn, conn.cursor() as cs:
@@ -136,7 +143,7 @@ async def get_last_days_weather(location: str, days: int = 1):
         """)
         result = [WeatherData(*data) for data in cs.fetchall()]
     if not result:
-        return HTTPException(404, f"No weather data found in the last {days} day")
+        raise HTTPException(404, f"No weather data found in the last {days} day")
     return result
 
 
@@ -156,7 +163,7 @@ async def get_aggregate_weather(location: str, days: int = 1):
         """)
         result = [WeatherData(*data) for data in cs.fetchall()]
     if not result:
-        return HTTPException(404, f"No weather data found in the last {days} day")
+        raise HTTPException(404, f"No weather data found in the last {days} day")
     return result
 
 
@@ -277,9 +284,9 @@ async def get_min_rainfall(location: str, days: int = 1):
 @router.get("/predict/temperature")
 async def get_temperature_prediction(location: str, ts: str):
     try:
-        date = datetime.strptime(ts, "%Y/%m/%d %H:%M")
+        date = datetime.strptime(ts, '%Y-%m-%dT%H:%M:%S')
     except (ValueError, TypeError):
-        raise HTTPException(422, f"{ts} is not of format %y/%m/%d %H:%M")
+        raise HTTPException(422, f'{ts} is not of format %Y-%m-%dT%H:%M:%S')
     result = WeatherPredictor().forecast_temperature(ts, location)
     if not result:
         raise HTTPException(404, f"No predictor found for the location:{location}")
@@ -291,9 +298,9 @@ async def get_temperature_prediction(location: str, ts: str):
 @router.get("/predict/humidity")
 async def get_humidity_prediction(location: str, ts: str):
     try:
-        date = datetime.strptime(ts, "%Y/%m/%d %H:%M")
+        date = datetime.strptime(ts, '%Y-%m-%dT%H:%M:%S')
     except (ValueError, TypeError):
-        raise HTTPException(422, f"{ts} is not of format %y/%m/%d %H:%M")
+        raise HTTPException(422, f'{ts} is not of format %Y-%m-%dT%H:%M:%S')
     result = WeatherPredictor().forecast_humidity(ts, location)
     if not result:
         raise HTTPException(404, f"No predictor found for the location:{location}")
@@ -305,9 +312,9 @@ async def get_humidity_prediction(location: str, ts: str):
 @router.get("/predict/pressure")
 async def get_pressure_prediction(location: str, ts: str):
     try:
-        date = datetime.strptime(ts, "%Y/%m/%d %H:%M")
+        date = datetime.strptime(ts, '%Y-%m-%dT%H:%M:%S')
     except (ValueError, TypeError):
-        raise HTTPException(422, f"{ts} is not of format %y/%m/%d %H:%M")
+        raise HTTPException(422, f'{ts} is not of format %Y-%m-%dT%H:%M:%S')
     result = WeatherPredictor().forecast_pressure(ts, location)
     if not result:
         raise HTTPException(404, f"No predictor found for the location:{location}")
@@ -319,10 +326,10 @@ async def get_pressure_prediction(location: str, ts: str):
 @router.get("/predict/rain")
 async def get_rain_prediction(location, start, end):
     try:
-        start_date = datetime.strptime(start, "%Y/%m/%d %H:%M")
-        end_date = datetime.strptime(end, "%Y/%m/%d %H:%M")
+        start_date = datetime.strptime(start, '%Y-%m-%dT%H:%M:%S')
+        end_date = datetime.strptime(end, '%Y-%m-%dT%H:%M:%S')
     except (ValueError, TypeError):
-        raise HTTPException(422, f"{start}, {end} is not of format %y/%m/%d %H:%M")
+        raise HTTPException(422, f'{start}, {end} is not of format %Y-%m-%dT%H:%M:%S')
     if start_date > end_date:
         raise HTTPException(422, "starting date greater than ending date.")
     temp = pd.DataFrame(WeatherPredictor().forecast_temperature(end, location))
@@ -404,6 +411,21 @@ async def get_multiple_heat_index(heat_index_data: HeatIndexDataList):
         data.pop("temperature", None)
         data.pop("humidity", None)
     return heat_index_data
+
+
+@router.get("/sensor/latest")
+async def get_latest_sensor():
+    with pool.connection() as conn, conn.cursor() as cs:
+        cs.execute("""
+            SELECT ts, temperature, humidity, co
+            FROM `weather_sensor`
+            ORDER BY ts DESC
+            LIMIT 1;
+        """)
+        result = cs.fetchone()
+    if not result:
+        raise HTTPException(404, "No sensor data found")
+    return SensorData(*result)
 
 
 app_api.include_router(router)

@@ -1,12 +1,11 @@
 import streamlit as st
-from datetime import datetime
-from components import navbar, render_graph
+from plotly import graph_objects
+from components import navbar, render_old_data_graph
 from utils import APIFetcher, keep_session_state, write_max_min
 
-st.set_page_config(page_title="Temperature", layout="wide")
+st.set_page_config(page_title="Visualization", layout="wide")
 keep_session_state()
 LOCATION = APIFetcher.get_location()
-THIRTY_MINUTES = 1800
 
 navbar()
 st.title("Visualization")
@@ -33,13 +32,13 @@ with col3:
     )
 
 with col4:
-    num_days = st.select_slider(
-        "Select number of days in the past", options=[1, 7, 14, 30], key="p_days"
+    num_days = st.slider(
+        "Select number of days in the past", min_value=1, max_value=30, key="p_days"
     )
 
-try:
-    st.plotly_chart(
-        render_graph(
+col5, col6 = st.columns([0.2, 0.8])
+with col6:
+    fig = render_old_data_graph(
             y=st.session_state["p_atr"].lower(),
             location=st.session_state["p_loc"],
             days=st.session_state["p_days"],
@@ -47,13 +46,11 @@ try:
             if st.session_state["p_detail"] == "Every data point"
             else False,
         )
-    )
+    if type(fig) is graph_objects.Figure:
+        st.plotly_chart(fig)
+with col5:
     write_max_min(
         st.session_state["p_loc"],
         st.session_state["p_days"],
         st.session_state["p_atr"].lower(),
-    )
-except ValueError:
-    st.markdown(
-        f"No data found within today and {st.session_state["p_days"]} day(s) ago"
     )
