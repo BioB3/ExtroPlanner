@@ -11,8 +11,8 @@ st.title("Latest Sensor Reading")
 
 try:
     data = APIFetcher.get_latest_sensor()
-    st.markdown(f"Last Updated: {format_datetime(data["ts"])}")
-    df = pd.DataFrame.from_dict([data]).drop(columns=["ts"])
+    st.markdown(f"Last Updated: {format_datetime(data['ts'])}")
+    df = pd.DataFrame.from_dict([data]).drop(columns=['ts'])
     st.table(df)
 except ValueError as e:
     error_message = str(e)

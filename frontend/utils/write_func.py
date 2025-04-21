@@ -10,7 +10,7 @@ def write_latest_data(location: str):
     try:
         data = APIFetcher.get_closest_weather(location=location)
         st.markdown(f"Last Updated: {format_datetime(data['ts'])}")
-        df = pd.DataFrame.from_dict([data]).drop(columns=["ts"])
+        df = pd.DataFrame.from_dict([data]).drop(columns=['ts'])
         st.table(df)
     except ValueError as e:
         error_message = str(e)
@@ -24,7 +24,7 @@ def write_closest_time(location: str, datetime: datetime):
     try:
         data = APIFetcher.get_closest_weather(location, datetime)
         st.markdown(f"*The Closest Record to {format_datetime(datetime)}*")
-        df = pd.DataFrame.from_dict([data]).drop(columns=["ts"])
+        df = pd.DataFrame.from_dict([data]).drop(columns=['ts'])
         st.table(df)
     except ValueError as e:
         error_message = str(e)
@@ -42,9 +42,9 @@ def write_max_min(location: str, days: int, attribute: str):
             f"""
             {attribute.capitalize()} of the past {days} day(s)\n
             Maximum: {max_data[attribute]} {get_unit(attribute)}\n
-            on {format_datetime(max_data["ts"])}\n
+            on {format_datetime(max_data['ts'])}\n
             Minimum: {min_data[attribute]} {get_unit(attribute)}\n
-            on {format_datetime(min_data["ts"])}
+            on {format_datetime(min_data['ts'])}
             """
         )
     except ValueError as e:
@@ -101,7 +101,7 @@ def write_descriptive_advice(location: str, start: datetime, end: datetime):
         """
     )
     if descriptive_advice["items"]:
-        st.markdown(f"Recommended item(s): {", ".join(descriptive_advice["items"])}")
+        st.markdown(f"Recommended item(s): {', '.join(descriptive_advice['items'])}")
 
     if descriptive_advice["rain_periods"]:
         st.markdown("Potential ran at")
