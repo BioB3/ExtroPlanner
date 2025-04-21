@@ -10,7 +10,7 @@ def write_latest_data(location: str):
     try:
         data = APIFetcher.get_closest_weather(location=location)
         st.markdown(f"Last Updated: {format_datetime(data['ts'])}")
-        df = pd.DataFrame.from_dict([data]).drop(columns=['ts'])
+        df = pd.DataFrame.from_dict([data]).drop(columns=["ts"])
         st.table(df)
     except ValueError as e:
         error_message = str(e)
@@ -23,8 +23,10 @@ def write_latest_data(location: str):
 def write_closest_time(location: str, datetime: datetime):
     try:
         data = APIFetcher.get_closest_weather(location, datetime)
-        st.markdown(f"*The Closest Record to {format_datetime(datetime)}*")
-        df = pd.DataFrame.from_dict([data]).drop(columns=['ts'])
+        st.markdown(
+            f"*The Closest Record to {format_datetime(datetime)} is at {format_datetime(data['ts'])}*"
+        )
+        df = pd.DataFrame.from_dict([data]).drop(columns=["ts"])
         st.table(df)
     except ValueError as e:
         error_message = str(e)
@@ -104,11 +106,15 @@ def write_descriptive_advice(location: str, start: datetime, end: datetime):
         st.markdown(f"Recommended item(s): {', '.join(descriptive_advice['items'])}")
 
     if descriptive_advice["rain_periods"]:
-        st.markdown("Potential ran at")
+        st.markdown("Potential rain at")
         for ts_range in descriptive_advice["rain_periods"]:
             st.markdown({ts_range})
+    else:
+        st.markdown("No potential rain forcasted")
 
     if descriptive_advice["heat_periods"]:
         st.markdown("Potential high heat at")
         for ts_range in descriptive_advice["heat_periods"]:
             st.markdown({ts_range})
+    else:
+        st.markdown("No potential high heat forcasted")

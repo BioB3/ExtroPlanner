@@ -32,8 +32,8 @@ with col3:
     )
 
 with col4:
-    num_days = st.select_slider(
-        "Select number of days in the past", options=[1, 7, 14, 30], key="p_days"
+    num_days = st.slider(
+        "Select number of days in the past", min_value=1, max_value=30, key="p_days"
     )
 
 col5, col6 = st.columns([0.2, 0.8])
