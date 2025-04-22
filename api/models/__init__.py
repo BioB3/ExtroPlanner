@@ -1,0 +1,5 @@
+from .humidity_predictor import HumidityPredictor
+from .pressure_predictor import PressurePredictor
+from .rain_classifier import RainClassifier
+from .temperature_predictor import TemperaturePredictor
+from .abstract_predictor import AbstractPredictor

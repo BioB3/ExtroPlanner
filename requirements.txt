@@ -1,5 +1,13 @@
-fastapi
+fastapi~=0.115.12
 uvicorn
-PyMySQL
-DBUtils
+PyMySQL~=1.1.1
+DBUtils~=3.1.0
 cryptography
+plotly~=6.0.1
+plotly[express]
+streamlit~=1.44.1
+pydantic~=2.11.3
+scikit-learn~=1.6.1
+statsmodels~=0.14.4
+pandas~=2.2.3
+requests~=2.32.3
