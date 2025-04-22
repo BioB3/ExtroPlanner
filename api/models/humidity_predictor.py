@@ -6,13 +6,16 @@ import os
 
 
 class HumidityPredictor(AbstractPredictor):
-    def __init__(self):
+    def __init__(self, location: str):
+        self.last_obs = None
         current_dir = os.path.dirname(os.path.abspath(__file__))
         model_dir = os.path.join(current_dir, "trained_models", "humidity_SARIMA.pkl")
-        self.sarima = self.__get_model(SARIMAXResults.load(model_dir))
+        self.sarima = self.__get_model(SARIMAXResults.load(model_dir), location)
 
         model_dir = os.path.join(current_dir, "trained_models", "humidity_SARIMAX.pkl")
-        self.sarimax = self.__get_model(SARIMAXResults.load(model_dir))
+        self.sarimax = self.__get_model(
+            SARIMAXResults.load(model_dir), location, sarimax=True
+        )
 
     def forecast(self, timestamp):
         return self.sarima.forecast(steps=timestamp)
@@ -21,19 +24,30 @@ class HumidityPredictor(AbstractPredictor):
         return self.sarimax.forecast(steps=timestamp, exog=exog)
 
     def refit(self, data):
-        pass
+        return self.sarima.append(data["humidity"])
 
-    def retrain(self, data):
-        pass
-
-    def __get_model(self, saved_model) -> SARIMAXResults:
+    def __get_model(self, saved_model, location: str, sarimax=False) -> SARIMAXResults:
         order = saved_model.model.order
         seasonal_order = saved_model.model.seasonal_order
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        data_dir = os.path.join(current_dir, "trained_models", "Kaset_train_data.csv")
+        data_dir = os.path.join(
+            current_dir, "trained_models", "data", location + "_train_data.csv"
+        )
         dataset = pd.read_csv(data_dir)
+        self.last_obs = dataset.iloc[-1]["ts"]
+        dataset["ts"] = pd.to_datetime(dataset["ts"])
+        if sarimax:
+            model = SARIMAX(
+                dataset.set_index("ts")["humidity"].asfreq('30min'),
+                exog=dataset.set_index("ts")[["temperature", "pressure"]].asfreq("30min"),
+                order=order,
+                seasonal_order=seasonal_order,
+            )
+            model = model.filter(saved_model.params)
+            return model
+
         model = SARIMAX(
-            dataset.set_index("ts")["humidity"],
+            dataset.set_index("ts")["humidity"].asfreq("30min"),
             order=order,
             seasonal_order=seasonal_order,
         )

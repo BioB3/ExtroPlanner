@@ -68,7 +68,7 @@ class RainfallData(BetterBaseModel):
 class EventWeatherData(BaseModel):
     weather: str
     ts: str
-    location: str | None = ''
+    location: str | None = ""
     temperature: float
     humidity: float
 
@@ -80,7 +80,7 @@ class EventWeatherDataList(BaseModel):
 class HeatIndexData(BaseModel):
     temperature: float
     humidity: float
-    ts: str | None = ''
+    ts: str | None = ""
 
 
 class HeatIndexDataList(BaseModel):
@@ -108,12 +108,12 @@ async def get_locations() -> list[str]:
 
 @router.get("/weather")
 async def get_closest_time_weather(
-    location: str, date_time: str = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+    location: str, date_time: str = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
 ) -> WeatherData:
     try:
-        date = datetime.strptime(date_time,'%Y-%m-%dT%H:%M:%S')
+        date = datetime.strptime(date_time, "%Y-%m-%dT%H:%M:%S")
     except (ValueError, TypeError):
-        raise HTTPException(422, f'{date_time} is not of format %Y-%m-%dT%H:%M:%S')
+        raise HTTPException(422, f"{date_time} is not of format %Y-%m-%dT%H:%M:%S")
     with pool.connection() as conn, conn.cursor() as cs:
         cs.execute(f"""
             SELECT ts, location, wind_sp, wind_deg,
@@ -286,12 +286,16 @@ async def get_min_rainfall(location: str, days: int = 1):
 @router.get("/predict/temperature")
 async def get_temperature_prediction(location: str, ts: str):
     try:
-        date = datetime.strptime(ts, '%Y-%m-%dT%H:%M:%S')
+        date = datetime.strptime(ts, "%Y-%m-%dT%H:%M:%S")
     except (ValueError, TypeError):
-        raise HTTPException(422, f'{ts} is not of format %Y-%m-%dT%H:%M:%S')
-    result = WeatherPredictor().forecast_temperature(ts, location)
-    if not result:
-        raise HTTPException(404, f"No predictor found for the location:{location}")
+        raise HTTPException(422, f"{ts} is not of format %Y-%m-%dT%H:%M:%S")
+    if date < datetime.now():
+        raise HTTPException(400, "Cannot predict past dates.")
+    location = location.replace(' ', '_')
+    locations = WeatherPredictor(pool).get_valid_predictor_locations()
+    if location not in locations:
+        raise HTTPException(404,f"No predictor found for the location:{location}")
+    result = WeatherPredictor(pool).forecast_temperature(ts, location)
     for data in result:
         data["location"] = location
     return result
@@ -300,12 +304,17 @@ async def get_temperature_prediction(location: str, ts: str):
 @router.get("/predict/humidity")
 async def get_humidity_prediction(location: str, ts: str):
     try:
-        date = datetime.strptime(ts, '%Y-%m-%dT%H:%M:%S')
+        date = datetime.strptime(ts, "%Y-%m-%dT%H:%M:%S")
     except (ValueError, TypeError):
-        raise HTTPException(422, f'{ts} is not of format %Y-%m-%dT%H:%M:%S')
-    result = WeatherPredictor().forecast_humidity(ts, location)
-    if not result:
-        raise HTTPException(404, f"No predictor found for the location:{location}")
+        raise HTTPException(422, f"{ts} is not of format %Y-%m-%dT%H:%M:%S")
+    if date < datetime.now():
+        raise HTTPException(400, "Cannot predict past dates.")
+    location = location.replace(' ', '_')
+    locations = WeatherPredictor(pool).get_valid_predictor_locations()
+    if location not in locations:
+        raise HTTPException(404,
+                            f"No predictor found for the location:{location}")
+    result = WeatherPredictor(pool).forecast_humidity(ts, location)
     for data in result:
         data["location"] = location
     return result
@@ -314,12 +323,17 @@ async def get_humidity_prediction(location: str, ts: str):
 @router.get("/predict/pressure")
 async def get_pressure_prediction(location: str, ts: str):
     try:
-        date = datetime.strptime(ts, '%Y-%m-%dT%H:%M:%S')
+        date = datetime.strptime(ts, "%Y-%m-%dT%H:%M:%S")
     except (ValueError, TypeError):
-        raise HTTPException(422, f'{ts} is not of format %Y-%m-%dT%H:%M:%S')
-    result = WeatherPredictor().forecast_pressure(ts, location)
-    if not result:
-        raise HTTPException(404, f"No predictor found for the location:{location}")
+        raise HTTPException(422, f"{ts} is not of format %Y-%m-%dT%H:%M:%S")
+    if date < datetime.now():
+        raise HTTPException(400, "Cannot predict past dates.")
+    location = location.replace(' ', '_')
+    locations = WeatherPredictor(pool).get_valid_predictor_locations()
+    if location not in locations:
+        raise HTTPException(404,
+                            f"No predictor found for the location:{location}")
+    result = WeatherPredictor(pool).forecast_pressure(ts, location)
     for data in result:
         data["location"] = location
     return result
@@ -328,22 +342,28 @@ async def get_pressure_prediction(location: str, ts: str):
 @router.get("/predict/rain")
 async def get_rain_prediction(location, start, end):
     try:
-        start_date = datetime.strptime(start, '%Y-%m-%dT%H:%M:%S')
-        end_date = datetime.strptime(end, '%Y-%m-%dT%H:%M:%S')
+        start_date = datetime.strptime(start, "%Y-%m-%dT%H:%M:%S")
+        end_date = datetime.strptime(end, "%Y-%m-%dT%H:%M:%S")
     except (ValueError, TypeError):
-        raise HTTPException(422, f'{start}, {end} is not of format %Y-%m-%dT%H:%M:%S')
+        raise HTTPException(422, f"{start}, {end} is not of format %Y-%m-%dT%H:%M:%S")
     if start_date > end_date:
         raise HTTPException(422, "starting date greater than ending date.")
-    temp = pd.DataFrame(WeatherPredictor().forecast_temperature(end, location))
-    humidity = pd.DataFrame(WeatherPredictor().forecast_humidity(end, location))
-    pressure = pd.DataFrame(WeatherPredictor().forecast_pressure(end, location))
+    if start_date < datetime.now() or end_date < datetime.now():
+        raise HTTPException(400, "Cannot predict past dates.")
+    location = location.replace(' ', '_')
+    locations = WeatherPredictor(pool).get_valid_predictor_locations()
+    if location not in locations:
+        raise HTTPException(404,f"No predictor found for the location:{location}")
+    temp = pd.DataFrame(WeatherPredictor(pool).forecast_temperature(end, location))
+    humidity = pd.DataFrame(WeatherPredictor(pool).forecast_humidity(end, location))
+    pressure = pd.DataFrame(WeatherPredictor(pool).forecast_pressure(end, location))
     ts = temp["ts"]
     weather_data = (
         temp.merge(humidity, on=["ts"], how="outer")
         .merge(pressure, on=["ts"], how="outer")
         .drop(columns=["ts"])
     )
-    result = WeatherPredictor().forecast_rain(weather_data)
+    result = WeatherPredictor(pool).forecast_rain(weather_data)
     for i in range(len(result)):
         result[i]["ts"] = ts.iloc[i]
         result[i]["location"] = location
@@ -357,13 +377,17 @@ async def get_event_conditions(location, start, end):
         end_date = datetime.strptime(end, "%Y-%m-%dT%H:%M:%S")
     except (ValueError, TypeError):
         raise HTTPException(422, f"{start}, {end} is not of format %Y-%m-%dT%H:%M:%S")
+    if start_date < datetime.now() or end_date < datetime.now():
+        raise HTTPException(400, "Cannot predict past dates.")
     if start_date > end_date:
         raise HTTPException(422, "starting date greater than ending date.")
-    temp = pd.DataFrame(WeatherPredictor().forecast_temperature(end, location))
-    humidity = pd.DataFrame(
-        WeatherPredictor().forecast_humidity(end, location))
-    pressure = pd.DataFrame(
-        WeatherPredictor().forecast_pressure(end, location))
+    location = location.replace(' ', '_')
+    locations = WeatherPredictor(pool).get_valid_predictor_locations()
+    if location not in locations:
+        raise HTTPException(404,f"No predictor found for the location:{location}")
+    temp = pd.DataFrame(WeatherPredictor(pool).forecast_temperature(end, location))
+    humidity = pd.DataFrame(WeatherPredictor(pool).forecast_humidity(end, location))
+    pressure = pd.DataFrame(WeatherPredictor(pool).forecast_pressure(end, location))
     ts = temp["ts"]
     weather_data = (
         temp.merge(humidity, on=["ts"], how="outer")
@@ -371,7 +395,7 @@ async def get_event_conditions(location, start, end):
         .drop(columns=["ts"])
     )
     data = {}
-    result = WeatherPredictor().forecast_rain(weather_data)
+    result = WeatherPredictor(pool).forecast_rain(weather_data)
     for i in range(len(result)):
         result[i]["ts"] = ts.iloc[i]
         result[i]["location"] = location
@@ -384,7 +408,9 @@ async def get_event_conditions(location, start, end):
         if result[i] == "rain":
             rain.append(ts.iloc[i])
     data["rain"] = rain
-    weather_data = temp.merge(humidity, on=["ts"], how="outer").to_dict(orient='records')
+    weather_data = temp.merge(humidity, on=["ts"], how="outer").to_dict(
+        orient="records"
+    )
     summary = EventAdvisor.get_weather_conditions_summary(weather_data)
     data["max_temp"] = summary["max_temp"]
     data["max_heat"] = summary["max_heat"]
@@ -408,7 +434,9 @@ async def get_heat_index(temp: float, humidity: float):
 async def get_multiple_heat_index(heat_index_data: HeatIndexDataList):
     heat_index_data = [model.model_dump() for model in heat_index_data.data]
     for data in heat_index_data:
-        heat_index = HeatIndexCalculator.calculate_heat_index(data["temperature"], data["humidity"])
+        heat_index = HeatIndexCalculator.calculate_heat_index(
+            data["temperature"], data["humidity"]
+        )
         data["heat_index"] = heat_index
         data.pop("temperature", None)
         data.pop("humidity", None)

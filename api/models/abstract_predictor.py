@@ -9,7 +9,3 @@ class AbstractPredictor(abc.ABC):
     @abc.abstractmethod
     def refit(self, data):
         raise NotImplementedError
-
-    @abc.abstractmethod
-    def retrain(self, data):
-        raise NotImplementedError
