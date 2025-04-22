@@ -9,11 +9,51 @@ API Web-application to aid in planing outdoor events/activities and monitor the 
 | Phasin    Sae-Ngow    | 6610545383 | Software and Knowledge Engineering | Engineering |
 
 # Project Overview:
-See vision and scope in the [project wiki](../../wiki/Vision-and-Scope) on [Github](https://github.com/BioB3/ExtroPlanner).
+## Main features
+- Visualisations for historical weather data.
+- View latest sensor readings.
+- Predictions for future weather conditions.
+- Event advisor to suggest if an event should be conducted and recommend equipment based on predicted weather conditions.
+
+## APIs provided
+
+1. Weather statistics endpoints
+
+| Endpoint             | Method | Description                                                                                                                             |
+|----------------------|--------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| `/locations`         | GET    | Return locations with observed weather data                                                                                             |
+| `/weather`           | GET    | Return the Latest weather observation for the given location.<br> If a date is specified return the closet observation to that date.    |
+| `/weather/last`      | GET    | Return weather observations from the last x days.<br> If no duration is specified return weather observations from yesterday.           |
+| `/weather/aggregate` | GET    | Return aggregated weather data from the last x days.<br> If no duration is specified return weather data from yesterday.                |
+| `/temperature/max`   | GET    | Return the maximum observed temperature from the last x days. If no duration is specified return the maximum temperature from yesterday |
+| `/temperature/min`   | GET    | Return the minimum observed temperature from the last x days. If no duration is specified return the minimum temperature from yesterday |
+| `/humidity/max`      | GET    | Return the maximum observed humidity from the last x days. If no duration is specified return the maximum humidity from yesterday       |
+| `/humidity/min`      | GET    | Return the minimum observed humidity from the last x days. If no duration is specified return the minimum humidity from yesterday       |
+| `/pressure/max`      | GET    | Return the maximum observed pressure from the last x days. If no duration is specified return the maximum pressure from yesterday       |
+| `/pressure/min`      | GET    | Return the minimum observed pressure from the last x days. If no duration is specified return the minimum pressure from yesterday       |
+| `/rainfall/max`      | GET    | Return the maximum observed rainfall from the last x days. If no duration is specified return the maximum rainfall from yesterday       |
+| `/rainfall/min`      | GET    | Return the minimum observed rainfall from the last x days. If no duration is specified return the minimum rainfall from yesterday       |
+| `/sensor/latest`     | GET    | Return the Latest weather observation from the sensor.                                                                                  |
+
+2. prediction endpoints
+
+| Endpoint               | Method | Description                                                                                                                                                                          |
+|------------------------|--------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `/predict/temperature` | GET    | Predicts temperature values from the last observed date in the models training data until the specified date for the given location.                                                 |
+| `/predict/humidity`    | GET    | Predicts humidity values from the last observed date in the models training data until the specified date for the given location.                                                    |
+| `/predict/pressure`    | GET    | Predicts pressure values from the last observed date in the models training data until the specified date for the given location.                                                    |
+| `/predict/rain`        | GET    | Predicts hourly rain from the last observed date in the models training data until the specified date for the given location. (Each returned value is either cloudy/no rain or rain) |
+
+3. Evaluation endpoints
+
+| Endpoint            | Method   | Description                                                                                                                                                   |
+|---------------------|----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `/event/conditions` | GET      | Return the predicted weather conditions during the given period, maximum predicted temperature, highest heat index calculated, and rainy periods.             |
+| `/event/describe`   | POST     | Return a suggestion for hosting the event (yes/no), along with a description of important weather periods (heat wave, rainy periods) and suggested equipment. |
+| `/heatindex`        | GET/POST | When the method is GET, calculates a single heat index. Use POST for calculating multiple heat indices.                                                       |
 
 # Installation
-1. clone the project using <br>```git clone https://github.com/BioB3/ExtroPlanner.git```.
-2. Rename ```config.py.example``` to ```config.py``` and input your database credentials.
+Please see [Installation.md](installation.md) for installation instructions.
 
 # Using the application
 ## Running the backend (API service)
