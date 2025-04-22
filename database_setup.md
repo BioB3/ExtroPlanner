@@ -62,8 +62,8 @@ CREATE TABLE `weather_cleaned` (
   `humidity` FLOAT,
   `cloud_per` FLOAT,
   `rain_amt` FLOAT,
-  `weather` VARCHAR(255),
-)
+  `weather` VARCHAR(255)
+);
 ```
 
 ## weather_api table
@@ -80,8 +80,8 @@ CREATE TABLE `weather_api` (
   `humidity` FLOAT,
   `cloud_per` FLOAT,
   `rain_amt` FLOAT DEFAULT '0',
-  `weather` VARCHAR(50),
-)
+  `weather` VARCHAR(50)
+);
 ```
 
 ## weather_sensor table
@@ -93,6 +93,6 @@ CREATE TABLE `weather_sensor`(
   `longitude` FLOAT,
   `temperature` FLOAT,
   `humidity` FLOAT,
-  `co` FLOAT,
-)
+  `co` FLOAT
+);
 ```
