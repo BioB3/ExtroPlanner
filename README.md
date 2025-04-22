@@ -1,6 +1,16 @@
 # ExtroPlanner
 API Web-application to aid in planing outdoor events/activities and monitor the current environment.
 
+# Members:
+
+| Name                  | ID         | Department                         | Faculty     |
+|-----------------------|------------|------------------------------------|-------------|
+| Khunakorn Pattayakorn | 6610545766 | Software and Knowledge Engineering | Engineering |
+| Phasin    Sae-Ngow    | 6610545383 | Software and Knowledge Engineering | Engineering |
+
+# Project Overview:
+See vision and scope in the [project wiki](../../wiki/Vision-and-Scope) on [Github](https://github.com/BioB3/ExtroPlanner).
+
 # Installation
 1. clone the project using <br>```git clone https://github.com/BioB3/ExtroPlanner.git```.
 2. Rename ```config.py.example``` to ```config.py``` and input your database credentials.
