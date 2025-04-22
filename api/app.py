@@ -21,6 +21,9 @@ pool = PooledDB(
 app_api = FastAPI()
 router = APIRouter(prefix="/explan")
 
+cleaned_table = "weather_cleaned"
+sensor_table = "weather_sensor"
+
 
 class BetterBaseModel(BaseModel):
     @classmethod
@@ -97,8 +100,8 @@ class SensorData(BetterBaseModel):
 @router.get("/locations")
 async def get_locations() -> list[str]:
     with pool.connection() as conn, conn.cursor() as cs:
-        cs.execute("""
-            SELECT DISTINCT location FROM `weather_cleaned`
+        cs.execute(f"""
+            SELECT DISTINCT location FROM `{cleaned_table}`
         """)
         result = [location[0] for location in cs.fetchall()]
     if not result:
@@ -119,7 +122,7 @@ async def get_closest_time_weather(
             SELECT ts, location, wind_sp, wind_deg,
             pressure, temperature, humidity,
             cloud_per, rain_amt, weather
-            FROM `weather_cleaned`
+            FROM `{cleaned_table}`
             WHERE location = "{location}"
             ORDER BY ABS(TIMESTAMPDIFF(SECOND, ts, "{date.isoformat()}"))
             ASC LIMIT 1;
@@ -139,7 +142,7 @@ async def get_last_days_weather(location: str, days: int = 1):
             SELECT ts, location, wind_sp, wind_deg,
             pressure, temperature, humidity,
             cloud_per, rain_amt, weather
-            FROM `weather_cleaned`
+            FROM `{cleaned_table}`
             WHERE location = "{location}"
             AND DATE(ts) >= DATE_SUB(NOW(), INTERVAL {days} DAY)
         """)
@@ -158,7 +161,7 @@ async def get_aggregate_weather(location: str, days: int = 1):
             SELECT DATE(ts) AS ts_agg, location, AVG(wind_sp), AVG(wind_deg),
             AVG(pressure), AVG(temperature), AVG(humidity),
             AVG(cloud_per), SUM(rain_amt), GROUP_CONCAT(DISTINCT weather)
-            FROM `weather_cleaned`
+            FROM `{cleaned_table}`
             WHERE location = "{location}"
             AND DATE(ts) >= DATE_SUB(NOW(), INTERVAL {days} DAY)
             GROUP BY ts_agg
@@ -176,7 +179,7 @@ async def get_max_temperature(location: str, days: int = 1):
     with pool.connection() as conn, conn.cursor() as cs:
         cs.execute(f"""
             SELECT ts, location, temperature
-            FROM `weather_cleaned`
+            FROM `{cleaned_table}`
             WHERE location = "{location}"
             AND DATE(ts) >= DATE_SUB(NOW(), INTERVAL {days} DAY)
             ORDER BY temperature DESC, ts DESC
@@ -195,7 +198,7 @@ async def get_min_temperature(location: str, days: int = 1):
     with pool.connection() as conn, conn.cursor() as cs:
         cs.execute(f"""
             SELECT ts, location, temperature
-            FROM `weather_cleaned`
+            FROM `{cleaned_table}`
             WHERE location = "{location}"
             AND DATE(ts) >= DATE_SUB(NOW(), INTERVAL {days} DAY)
             ORDER BY temperature ASC, ts DESC
@@ -214,7 +217,7 @@ async def get_max_humidity(location: str, days: int = 1):
     with pool.connection() as conn, conn.cursor() as cs:
         cs.execute(f"""
             SELECT ts, location, humidity
-            FROM `weather_cleaned`
+            FROM `{cleaned_table}`
             WHERE location = "{location}"
             AND DATE(ts) >= DATE_SUB(NOW(), INTERVAL {days} DAY)
             ORDER BY humidity DESC, ts DESC
@@ -233,7 +236,7 @@ async def get_min_humidity(location: str, days: int = 1):
     with pool.connection() as conn, conn.cursor() as cs:
         cs.execute(f"""
             SELECT ts, location, humidity
-            FROM `weather_cleaned`
+            FROM `{cleaned_table}`
             WHERE location = "{location}"
             AND DATE(ts) >= DATE_SUB(NOW(), INTERVAL {days} DAY)
             ORDER BY humidity ASC, ts DESC
@@ -252,7 +255,7 @@ async def get_max_rainfall(location: str, days: int = 1):
     with pool.connection() as conn, conn.cursor() as cs:
         cs.execute(f"""
             SELECT ts, location, rain_amt, weather
-            FROM `weather_cleaned`
+            FROM `{cleaned_table}`
             WHERE location = "{location}"
             AND DATE(ts) >= DATE_SUB(NOW(), INTERVAL {days} DAY)
             ORDER BY rain_amt DESC, ts DESC
@@ -271,7 +274,7 @@ async def get_min_rainfall(location: str, days: int = 1):
     with pool.connection() as conn, conn.cursor() as cs:
         cs.execute(f"""
             SELECT ts, location, rain_amt, weather
-            FROM `weather_cleaned`
+            FROM `{cleaned_table}`
             WHERE location = "{location}"
             AND DATE(ts) >= DATE_SUB(NOW(), INTERVAL {days} DAY)
             ORDER BY rain_amt ASC, ts DESC
@@ -446,9 +449,9 @@ async def get_multiple_heat_index(heat_index_data: HeatIndexDataList):
 @router.get("/sensor/latest")
 async def get_latest_sensor():
     with pool.connection() as conn, conn.cursor() as cs:
-        cs.execute("""
+        cs.execute(f"""
             SELECT ts, temperature, humidity, co
-            FROM `weather_sensor`
+            FROM `{sensor_table}`
             ORDER BY ts DESC
             LIMIT 1;
         """)

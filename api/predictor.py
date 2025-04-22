@@ -3,6 +3,8 @@ from .models import *
 import pandas as pd
 import os
 
+cleaned_table = "weather_cleaned"
+
 
 class Singleton(type):
     _instances = {}
@@ -129,7 +131,7 @@ class WeatherPredictor(metaclass=Singleton):
         with self.__db.connection() as conn, conn.cursor() as cs:
             cs.execute(f"""
                 SELECT ts, temperature, humidity, pressure
-                FROM `weather_cleaned`
+                FROM `{cleaned_table}`
                 WHERE ts BETWEEN '{t_start.isoformat()}' AND '{t_end.isoformat()}'
             """)
         fields = ["ts", "temperature", "humidity", "pressure"]

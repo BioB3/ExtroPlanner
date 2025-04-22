@@ -5,6 +5,7 @@ The database schema consists of 3 tables
 - API table (weather_api): Contains weather data fetched from [Open Weather API](https://openweathermap.org/current) current weather data API.
 - Sensor table (weather_sensor): Contains weather data read from data acquisition devices.
 
+You can change the names of these tables but you will have to update cleaned_table and sensor_table definitions in `app.py` and `predictor.py`
 
 # Schema
 The schema for each table are as follows
