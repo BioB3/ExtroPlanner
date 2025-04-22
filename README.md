@@ -30,7 +30,7 @@ or go to http://127.0.0.1:8000/docs/ to call the APIs using a GUI
 
 # Database Schema
 You will need a MySQL database to run this project.<br>
-you can find the required database schema in the [database setup readme](database_setup.md)
+you can find the required database schema in the [database setup readme](database_setup.md#overview)
 or in the [project wiki](../../wiki/Database-Schema).
 
 # Prediction model + data acquisition
